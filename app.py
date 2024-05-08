@@ -95,9 +95,11 @@ HTML_TEMPLATE = """
 </html>
 """
 
+
 @app.route('/')
 def index():
     return render_template_string(HTML_TEMPLATE)
+
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -122,5 +124,6 @@ def upload_file():
         return jsonify({'message': '文件上传成功'})
     return jsonify({'error': '上传失败，未知错误'})
 
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')
