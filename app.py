@@ -15,7 +15,7 @@ HTML_TEMPLATE = """
     <title>File Upload</title>
     <style>
         .dropzone {
-            border: 2px dashed #ccc; /* 虚线边框 */
+            border: 2px dashed #ccc;
             padding: 20px;
             text-align: center;
             color: #ccc;
@@ -30,41 +30,65 @@ HTML_TEMPLATE = """
 </head>
 <body>
 
-<form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
-    <div class="dropzone" id="dropzone">
-        <p>将文件拖入这里，或点击选择文件上传</p>
-        <input type="file" id="fileInput" name="file" class="hidden" multiple>
-    </div>
-</form>
+<div class="dropzone" id="dropzone">
+    <p>将文件拖入这里，或点击选择文件上传</p>
+    <input type="file" id="fileInput" class="hidden" multiple>
+</div>
 
 <script>
+    // 获取dropzone和fileInput DOM元素
     var dropzone = document.getElementById('dropzone');
     var fileInput = document.getElementById('fileInput');
-    var uploadForm = document.getElementById('uploadForm');
 
+    // 拖拽时显示为复制状态
     dropzone.addEventListener('dragover', function(event) {
         event.stopPropagation();
         event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy'; // 显示为复制状态
+        event.dataTransfer.dropEffect = 'copy';
     });
 
+    // 放开时触发文件选择
     dropzone.addEventListener('drop', function(event) {
         event.stopPropagation();
         event.preventDefault();
         if (event.dataTransfer.files.length) {
-            fileInput.files = event.dataTransfer.files; // 将拖放的文件赋值给fileInput
-            uploadForm.submit(); // 直接提交表单
+            fileInput.files = event.dataTransfer.files;
+            uploadFiles(fileInput.files);
         }
     });
 
-    fileInput.addEventListener('change', function(event) {
-        // 当文件选择改变时，自动提交表单
-        uploadForm.submit();
+    // 点击dropzone时触发文件选择对话框
+    dropzone.addEventListener('click', function() {
+        fileInput.click();
     });
 
-    dropzone.addEventListener('click', function() {
-        fileInput.click(); // 点击 dropzone 时触发文件选择对话框
+    // 监听文件输入控件的变化
+    fileInput.addEventListener('change', function(event) {
+        uploadFiles(event.target.files);
     });
+
+    // 上传文件的函数
+    function uploadFiles(files) {
+        var formData = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            formData.append('file' + i, files[i]);
+        }
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload', true); // 打开一个新连接，使用POST请求访问服务器上的/upload路径
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                alert('文件上传成功');
+            } else {
+                alert('文件上传失败');
+            }
+            console.log('Server response:', xhr.responseText);
+        };
+        xhr.onerror = function () {
+            alert('文件上传发生错误');
+        };
+        xhr.send(formData); // 发送请求
+    }
 </script>
 
 </body>
@@ -77,12 +101,12 @@ def index():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print('进来了！')
-    if 'file' not in request.files:
+    print('进来了！', request.files)
+    if 'file0' not in request.files:
         print('出去了！')
         return jsonify({'error': '没有文件部分'})
-    file = request.files.get('file')
-    # file = request.files['file0']
+    # file = request.files.get('file')
+    file = request.files['file0']
     print('filename', file.filename)
     if file.filename == '':
         return jsonify({'error': '没有选择文件'})
