@@ -4,31 +4,49 @@
     <meta charset="UTF-8">
     <title>Chat Interface</title>
     <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column; /* Change to column for vertical stacking */
+            justify-content: flex-end; /* Aligns the chat at the bottom */
+            background-color: #f9f9f9;
+        }
+
         #conversation {
             width: 80%;
-            max-width: 600px;
-            margin: 30px auto;
+            max-width: 1000px;
+            margin: 30px auto 10px; /* Adjusted margin for better alignment */
             padding: 20px;
-            border: 1px solid #eee;
-            height: 400px;
-            overflow-y: scroll;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: white;
+            overflow-y: auto;
+            max-height: calc(100% - 100px); /* Subtracting estimated input & margin heights */
         }
+
         .message {
             margin-bottom: 10px;
             line-height: 20px;
         }
+
         .user {
             text-align: right;
-            margin-bottom: 10px;
         }
+
         .ai {
             text-align: left;
         }
+
         #userInput {
-            width: calc(100% - 22px);
+            width: calc(80% + 40px);
+            max-width: 1040px;
             padding: 10px;
-            margin: 10px auto;
-            display: block;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -38,53 +56,7 @@
 
 <input type="text" id="userInput" placeholder="Type a message..." />
 
-<script>
-    const conversation = document.getElementById('conversation');
-    const userInput = document.getElementById('userInput');
-
-    function postMessage(message, isUser) {
-        const messageElem = document.createElement('div');
-        messageElem.classList.add('message', isUser ? 'user' : 'ai');
-        messageElem.textContent = message;
-        conversation.appendChild(messageElem);
-        conversation.scrollTop = conversation.scrollHeight; // Scroll to the bottom
-
-        // Optional: Move focus to input after posting message
-        userInput.focus();
-    }
-
-    userInput.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            const message = userInput.value.trim();
-            if (message) {
-                postMessage(userInput.value, true); // Display user message
-                sendToAI(message); // Send user message to AI
-                userInput.value = ''; // Clear input field
-            }
-        }
-    });
-
-    function sendToAI(userMessage) {
-        // This function should send the user's message to your AI model
-        // and then use postMessage to display the AI's response.
-
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/ai', true);
-        xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                    const aiResponse = xhr.responseText;
-                    postMessage(aiResponse, false); // Display AI response
-                } else {
-                    postMessage('Error: Unable to reach AI model.', false);
-                }
-            }
-        };
-        xhr.send(JSON.stringify({ message: userMessage }));
-    }
-</script>
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 
 </body>
 </html>
