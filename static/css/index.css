@@ -1,0 +1,38 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+.buttons-container {
+    text-align: center;
+}
+
+.button {
+    display: inline-block;
+    margin: 10px;
+    padding: 15px 25px;
+    text-decoration: none;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #0056b3;
+}
+
+/* 确保按钮在较大屏幕上也占据页面的中心 */
+@media (min-width: 600px) {
+    .button {
+        margin: 20px;
+    }
+}

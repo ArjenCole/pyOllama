@@ -7,7 +7,7 @@ app = Flask(__name__)
 CORS(app)  # 允许跨源请求
 
 
-@app.route('/')
+@app.route('/dropzone')
 def dropzone():
     return render_template('dropzone.html')
 
