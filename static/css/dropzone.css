@@ -1,34 +1,39 @@
 /* static/css/dropzone.css */
 
-/* 设置整个页面的字体和背景颜色 */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    height: 100vh; /* 使 body 占满整个视口高度 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 设置 dropzone 容器的样式 */
 .dropzone {
     border: 2px dashed #d3d3d3;
-    padding: 40px;
+    padding: 60px; /* 增加内边距 */
     text-align: center;
     color: #bbbbbb;
     background-color: #f0f0f0;
     border-radius: 20px;
-    margin: 100px auto;
-    height: 50%;
-    width: 70%;
+    width: 70%; /* 宽度调整为视口宽度的 90% */
+    height: 60%; /* 高度调整为视口高度的 90% */
+    min-width: 50%; /* 最小宽度为屏幕宽度的 50% */
+    min-height: 50%; /* 最小高度为屏幕高度的 50% */
     cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 当 dropzone 容器内有文件时改变样式 */
 .dropzone.dragover {
     border-color: #000;
     color: #000;
 }
 
-/* 设置隐藏元素的样式 */
 .hidden {
     display: none;
 }
