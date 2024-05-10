@@ -10,11 +10,14 @@ body {
 
 /* 设置 dropzone 容器的样式 */
 .dropzone {
-    border: 2px dashed #ccc;
-    padding: 20px;
+    border: 2px dashed #d3d3d3;
+    padding: 40px;
     text-align: center;
-    color: #ccc;
+    color: #bbbbbb;
+    background-color: #f0f0f0;
+    border-radius: 20px;
     margin: 100px auto;
+    height: 50%;
     width: 70%;
     cursor: pointer;
 }
