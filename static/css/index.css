@@ -1,3 +1,5 @@
+/* static/css/style.css */
+
 body, html {
     height: 100%;
     margin: 0;
@@ -10,29 +12,42 @@ body, html {
 }
 
 .buttons-container {
-    text-align: center;
+    display: flex;
+    justify-content: space-around;
+    width: 80%;
+    max-width: 3600px; /* 限制按钮组的最大宽度 */
 }
 
 .button {
     display: inline-block;
-    margin: 10px;
-    padding: 15px 25px;
+    padding: 180px; /* 进一步增大内边距 */
+    margin: 30px; /* 进一步增大外边距 */
     text-decoration: none;
     color: #fff;
-    background-color: #007bff;
+    background-color: #5d5d5d; /* 低饱和度的灰色 */
     border: none;
-    border-radius: 5px;
-    font-size: 16px;
+    border-radius: 4px;
+    font-size: 36px; /* 进一步增大字体大小 */
     transition: background-color 0.3s ease;
+    box-sizing: border-box;
+    width: calc((100% - 90px) / 3); /* 调整按钮宽度，减去更大的间距 */
+    height: 500px; /* 进一步增大高度 */
 }
 
 .button:hover {
-    background-color: #0056b3;
+    background-color: #4a4a4a;
 }
 
-/* 确保按钮在较大屏幕上也占据页面的中心 */
-@media (min-width: 600px) {
+/* 响应式设计：在小屏幕设备上堆叠按钮 */
+@media (max-width: 768px) {
+    .buttons-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
     .button {
-        margin: 20px;
+        width: 80%; /* 在小屏幕上按钮宽度为80% */
+        margin: 30px 0; /* 调整垂直间距 */
+        height: 200px; /* 在小屏幕上减小按钮高度以适应屏幕 */
     }
 }
