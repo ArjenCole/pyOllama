@@ -8,7 +8,7 @@ CORS(app)  # 允许跨源请求
 
 
 @app.route('/')
-def index():
+def dropzone():
     return render_template('dropzone.html')
 
 
