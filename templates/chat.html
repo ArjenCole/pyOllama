@@ -3,52 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat Interface</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            display: flex;
-            flex-direction: column; /* Change to column for vertical stacking */
-            justify-content: flex-end; /* Aligns the chat at the bottom */
-            background-color: #f9f9f9;
-        }
-
-        #conversation {
-            width: 80%;
-            max-width: 1000px;
-            margin: 30px auto 10px; /* Adjusted margin for better alignment */
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background-color: white;
-            overflow-y: auto;
-            max-height: calc(100% - 100px); /* Subtracting estimated input & margin heights */
-        }
-
-        .message {
-            margin-bottom: 10px;
-            line-height: 20px;
-        }
-
-        .user {
-            text-align: right;
-        }
-
-        .ai {
-            text-align: left;
-        }
-
-        #userInput {
-            width: calc(80% + 40px);
-            max-width: 1040px;
-            padding: 10px;
-            margin: 0 auto;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            box-sizing: border-box;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat.css') }}">
 </head>
 <body>
 
