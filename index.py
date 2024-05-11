@@ -1,4 +1,5 @@
 from flask import Flask, render_template
+from dropzone import upload_file  # 假设dropzone.py在同一包内，使用相对导入
 
 app = Flask(__name__)
 
@@ -13,6 +14,12 @@ def index():
 def dropzone():
     # 文件上传页面路由
     return render_template('dropzone.html')
+
+
+@app.route('/upload', methods=['POST'])
+def handle_upload():
+    # 使用从dropzone.py导入的upload_file逻辑处理上传
+    return upload_file()
 
 
 @app.route('/chat')
