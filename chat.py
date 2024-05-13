@@ -1,13 +1,42 @@
-from flask import render_template_string, Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
 
-@app.route('/ai', methods=['GET'])
-def chat():
+@app.route('/ai', methods=['POST'])
+def commAI():
+    print("11111")
 
-    return render_template('chat.html')  # 确保 'index.html' 在
+    # 获取前端发送的 JSON 数据
+    user_input = request.json.get('prompt', '')
+
+    # 构建请求体
+    tData = {
+        "model": "qwen:7b",
+        "prompt": user_input,
+        "stream": False
+    }
+    print("2")
+
+    # 发送请求到 AI 模型服务
+    try:
+        tResponse = requests.post("http://127.0.0.1:11434/api/generate", json=tData)
+        tResponse.raise_for_status()  # 如果响应状态码不是 200，将抛出异常
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': 'An error occurred while communicating with the AI model service.'}), 500
+    print("3")
+
+    # 检查请求是否成功
+    if tResponse.status_code == 200:
+        print("4")
+
+        tDict = tResponse.json()
+        print(tDict['response'])
+        return jsonify({'response': tDict['response']})
+    else:
+        return jsonify({'error': f"Request failed with status code: {tResponse.status_code}"}), tResponse.status_code
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=True, host='0.0.0.0', port=8080)

@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from dropzone import upload_file  # 假设dropzone.py在同一包内，使用相对导入
+from chat import commAI
 
 app = Flask(__name__)
 
@@ -26,6 +27,11 @@ def handle_upload():
 def chat():
     # 聊天页面路由
     return render_template('chat.html')
+
+
+@app.route('/ai', methods=['POST'])
+def handle_commAI():
+    return commAI()
 
 
 @app.route('/knowledge')
