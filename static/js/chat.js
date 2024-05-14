@@ -1,15 +1,6 @@
 const conversation = document.getElementById('conversation');
 const userInput = document.getElementById('userInput');
 
-function postMessage(message, isUser) {
-    const messageElem = document.createElement('div');
-    messageElem.classList.add('message', isUser ? 'user' : 'ai');
-    messageElem.textContent = message;
-    conversation.appendChild(messageElem);
-    conversation.scrollTop = conversation.scrollHeight; // Scroll to the bottom
-    userInput.focus();
-}
-
 userInput.addEventListener('keydown', function(event) {
     if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -21,6 +12,7 @@ userInput.addEventListener('keydown', function(event) {
         }
     }
 });
+
 
 function sendToAI(userMessage) {
     fetch('/ai', {
@@ -49,4 +41,14 @@ function sendToAI(userMessage) {
         console.error('Error:', error);
         postMessage('与服务器通信时发生错误：' + error.message, false);
     });
+}
+
+
+function postMessage(message, isUser) {
+    const messageElem = document.createElement('div');
+    messageElem.classList.add('message', isUser ? 'user' : 'ai');
+    messageElem.textContent = message;
+    conversation.appendChild(messageElem);
+    conversation.scrollTop = conversation.scrollHeight; // Scroll to the bottom
+    userInput.focus();
 }
