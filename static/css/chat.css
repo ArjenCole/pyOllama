@@ -61,4 +61,16 @@
             border: 1px solid #ccc;
             border-radius: 10px;
             box-sizing: border-box;
+
+        }
+
+        .legal-notice {
+            width: 80%; /* 控制提示信息的宽度 */
+            max-width: 1000px; /* 提示信息的最大宽度 */
+            margin: 10px auto; /* 居中显示并上下留出空间 */
+            padding: 10px; /* 提示信息的内边距 */
+            background-color: #f9f9f9; /* 灰色背景 */
+            text-align: center; /* 文本居中 */
+            color: #666; /* 文字颜色设置为深灰色 */
+            font-size: 0.9em; /* 适当调整文字大小 */
         }
