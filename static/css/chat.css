@@ -21,19 +21,37 @@
             max-height: calc(100% - 100px); /* Subtracting estimated input & margin heights */
         }
 
+        /* 其他样式保持不变 */
+
         .message {
+            display: inline-block; /* 允许消息框宽度根据内容自动调整 */
+            max-width: 75%; /* 限制消息框的最大宽度 */
             margin-bottom: 10px;
             line-height: 20px;
-            white-space: pre-wrap; /* 允许换行 */
+            white-space: pre-wrap;
+            vertical-align: top; /* 确保消息框在垂直方向上正确对齐 */
         }
 
         .user {
             text-align: right;
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-right: 20%; /* 将用户消息框从右侧边缘推开 */
         }
 
         .ai {
             text-align: left;
+            background-color: gray;
+            color: black;
+            padding: 10px;
+            border-radius: 5px;
+            margin-left: 20%; /* 将AI消息框从左侧边缘推开 */
         }
+
+        /* 其他样式保持不变 */
+
 
         #userInput {
             width: calc(80% + 40px);
