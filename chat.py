@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 
 @app.route('/ai', methods=['POST'])
-def commAI():
+def chat_ai():
     print("11111")
 
     # 获取前端发送的 JSON 数据
