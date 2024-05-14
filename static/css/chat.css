@@ -6,7 +6,7 @@
             display: flex;
             flex-direction: column; /* Change to column for vertical stacking */
             justify-content: flex-end; /* Aligns the chat at the bottom */
-            background-color: #f9f9f9;
+            background-color: gray;
         }
 
         #conversation {
@@ -14,14 +14,15 @@
             max-width: 1000px;
             margin: 30px auto 10px; /* Adjusted margin for better alignment */
             padding: 20px;
-            border: 1px solid #ccc;
+            border: 1px solid gray;
             border-radius: 10px;
-            background-color: white;
+            background-color: lightgrey;
             overflow-y: auto;
             max-height: calc(100% - 100px); /* Subtracting estimated input & margin heights */
+            min-height: 80%;
         }
 
-        /* 其他样式保持不变 */
+
 
         .message {
             display: inline-block; /* 允许消息框宽度根据内容自动调整 */
@@ -34,7 +35,7 @@
 
         .user {
             text-align: right;
-            background-color: green;
+            background-color: darkslategrey;
             color: white;
             padding: 10px;
             border-radius: 5px;
@@ -56,21 +57,21 @@
         #userInput {
             width: calc(80% + 40px);
             max-width: 1040px;
-            padding: 10px;
+            padding: 20px;
             margin: 0 auto;
             border: 1px solid #ccc;
             border-radius: 10px;
             box-sizing: border-box;
-
+            background-color: lightgrey;
+            font-size: 1em; /* 适当调整文字大小 */
         }
 
         .legal-notice {
             width: 80%; /* 控制提示信息的宽度 */
             max-width: 1000px; /* 提示信息的最大宽度 */
-            margin: 10px auto; /* 居中显示并上下留出空间 */
+            margin: 5px auto; /* 居中显示并上下留出空间 */
             padding: 10px; /* 提示信息的内边距 */
-            background-color: #f9f9f9; /* 灰色背景 */
             text-align: center; /* 文本居中 */
             color: #666; /* 文字颜色设置为深灰色 */
-            font-size: 0.9em; /* 适当调整文字大小 */
+            font-size: 0.7em; /* 适当调整文字大小 */
         }
