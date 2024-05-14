@@ -13,7 +13,7 @@ def dropzone():
 
 
 @app.route('/upload', methods=['POST'])
-def upload_file():
+def dropzone_upload():
     print('进来了！', request.files)
     if 'file0' not in request.files:
         print('出去了！')
