@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 from dropzone import dropzone_upload  # 假设dropzone.py在同一包内，使用相对导入
-from chat import chat_ai
+from ai import chat_ai
 
 app = Flask(__name__)
 

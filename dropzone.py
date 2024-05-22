@@ -1,6 +1,8 @@
 from flask import Flask, render_template_string, request, jsonify, render_template
 from flask_cors import CORS
 import os
+
+import ai
 import pyExcel
 from werkzeug.utils import secure_filename
 
@@ -34,8 +36,11 @@ def dropzone_upload():
         print(file_path)
         file.save(file_path)
 
+        # 读取表头单元格字符串内容
         headers = pyExcel.extract_headers(file_path)
         print(headers)
+
+        ai.excel_ai(headers)
 
         return jsonify({'message': '文件上传成功'})
     return jsonify({'error': '上传失败，未知错误'})
