@@ -14,7 +14,7 @@ def chat_ai():
 
 def excel_ai(pList):
     # 获取前端发送的 JSON 数据
-    user_input = "你是一个字符串匹配器，可以对字符串的字面意思进行匹配；下面是一组字符串列表，请告诉我这些字符串中，《建筑工程》出现在第几个:"
+    user_input = "你是一个字符串匹配器，可以对字符串的字面意思进行匹配；下面是一组字符串列表，每一行是一个字符串， " + pList[0] + " 是第一行的字符串，请告诉我这些字符串中，建筑工程 出现在第几行:"
     for feStr in pList:
         user_input = user_input + "\n" + str(feStr)
 
@@ -29,6 +29,7 @@ def sendtoAI(pUserInput):
         "stream": False
     }
 
+    print(pUserInput)
     # 发送请求到 AI 模型服务
     try:
         tResponse = requests.post("http://127.0.0.1:11434/api/generate", json=tData)
