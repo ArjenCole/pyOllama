@@ -27,11 +27,11 @@ def dropzone_upload():
     if file.filename == '':
         return jsonify({'error': '没有选择文件'})
     if file:
-        if not os.path.exists('F:/GithubRepos/ArjenCole/pyOllama/'):
-            os.makedirs('F:/GithubRepos/ArjenCole/pyOllama/')  # 确保目录存在
+        if not os.path.exists('F:/GithubRepos/ArjenCole/pyOllama/uploads'):
+            os.makedirs('F:/GithubRepos/ArjenCole/pyOllama/uploads')  # 确保目录存在
         # filename = secure_filename(file.filename)  # 使用 Werkzeug 库提供的 secure_filename 函数
         filename = file.filename
-        file_path = os.path.join('F:/GithubRepos/ArjenCole/pyOllama/', filename)
+        file_path = os.path.join('F:/GithubRepos/ArjenCole/pyOllama/uploads', filename)
 
         print(file_path)
         file.save(file_path)
