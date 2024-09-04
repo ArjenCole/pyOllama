@@ -4,6 +4,7 @@ import os
 
 import ai
 import pyExcel
+import FCM
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -37,10 +38,18 @@ def dropzone_upload():
         _file.save(_filePath)
 
         # 读取表头单元格字符串内容
-        headers = pyExcel.extract_headers(_filePath)
-        print(headers)
+        # headers = pyExcel.extract_headers(_filePath)
+        # print(headers)
 
-        ai.excel_ai(headers)
+        # ai.excel_ai(headers)
+        target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '费用及项目名称']
+        raw_word = '建筑工程'
+        matched_word, similarity_score = FCM.fuzzy_match(raw_word, target_words)
+        if matched_word:
+            print(f"识别的结论: '{raw_word}' 与 '{matched_word}' 相似度为 {similarity_score:.2f}")
+        else:
+            print(f"识别的结论: '{raw_word}' 在目标字符串中没有找到匹配项")
+
 
         return jsonify({'message': '文件上传成功'})
     return jsonify({'error': '上传失败，未知错误'})
