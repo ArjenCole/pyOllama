@@ -22,22 +22,22 @@ def dropzone_upload():
         print('出去了！')
         return jsonify({'error': '没有文件部分'})
     # file = request.files.get('file')
-    file = request.files['file0']
-    print('filename', file.filename)
-    if file.filename == '':
+    _file = request.files['file0']
+    print('filename', _file.filename)
+    if _file.filename == '':
         return jsonify({'error': '没有选择文件'})
-    if file:
+    if _file:
         if not os.path.exists('F:/GithubRepos/ArjenCole/pyOllama/uploads'):
             os.makedirs('F:/GithubRepos/ArjenCole/pyOllama/uploads')  # 确保目录存在
         # filename = secure_filename(file.filename)  # 使用 Werkzeug 库提供的 secure_filename 函数
-        filename = file.filename
-        file_path = os.path.join('F:/GithubRepos/ArjenCole/pyOllama/uploads', filename)
+        _fileName = _file.filename
+        _filePath = os.path.join('F:/GithubRepos/ArjenCole/pyOllama/uploads', _fileName)
 
-        print(file_path)
-        file.save(file_path)
+        print(_filePath)
+        _file.save(_filePath)
 
         # 读取表头单元格字符串内容
-        headers = pyExcel.extract_headers(file_path)
+        headers = pyExcel.extract_headers(_filePath)
         print(headers)
 
         ai.excel_ai(headers)
