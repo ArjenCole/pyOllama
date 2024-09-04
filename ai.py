@@ -7,44 +7,44 @@ app = Flask(__name__)
 @app.route('/ai', methods=['POST'])
 def chat_ai():
     # 获取前端发送的 JSON 数据
-    user_input = request.json.get('prompt', '')
+    _userInput = request.json.get('prompt', '')
 
-    return sendtoAI(user_input)
+    return _send_to_ai(_userInput)
 
 
-def excel_ai(pList):
+def excel_ai(p_list):
     # 获取前端发送的 JSON 数据
-    user_input = "你是一个字符串匹配器，可以对字符串的字面意思进行匹配；下面是一组字符串列表，每一行是一个字符串， " + pList[0] + " 是第一行的字符串，请告诉我这些字符串中，建筑工程 出现在第几行:"
-    for feStr in pList:
-        user_input = user_input + "\n" + str(feStr)
+    _userInput = "你是一个字符串匹配器，可以对字符串的字面意思进行匹配；下面是一组字符串列表，每一行是一个字符串， " + pList[0] + " 是第一行的字符串，请告诉我这些字符串中，建筑工程 出现在第几行:"
+    for feStr in p_list:
+        _userInput = _userInput + "\n" + str(feStr)
 
-    return sendtoAI(user_input)
+    return _send_to_ai(_userInput)
 
 
-def sendtoAI(pUserInput):
+def _send_to_ai(p_prompt):
     # 构建请求体
-    tData = {
+    _data = {
         "model": "qwen:7b",
-        "prompt": pUserInput,
+        "prompt": p_prompt,
         "stream": False
     }
 
-    print(pUserInput)
+    print(p_prompt)
     # 发送请求到 AI 模型服务
     try:
-        tResponse = requests.post("http://127.0.0.1:11434/api/generate", json=tData)
-        tResponse.raise_for_status()  # 如果响应状态码不是 200，将抛出异常
+        _response = requests.post("http://127.0.0.1:11434/api/generate", json=_data)
+        _response.raise_for_status()  # 如果响应状态码不是 200，将抛出异常
     except requests.exceptions.RequestException as e:
         return jsonify({'error': 'An error occurred while communicating with the AI model service.'}), 500
 
     # 检查请求是否成功
-    if tResponse.status_code == 200:
+    if _response.status_code == 200:
 
-        tDict = tResponse.json()
-        print(tDict['response'])
-        return jsonify({'response': tDict['response']})
+        _dict = _response.json()
+        print(_dict['response'])
+        return jsonify({'response': _dict['response']})
     else:
-        return jsonify({'error': f"Request failed with status code: {tResponse.status_code}"}), tResponse.status_code
+        return jsonify({'error': f"Request failed with status code: {_response.status_code}"}), _response.status_code
 
 
 if __name__ == '__main__':
