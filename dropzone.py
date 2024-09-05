@@ -28,9 +28,9 @@ def dropzone_upload():
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
         pyExcel.get_workbook(_dict['DIR'])
-        _raw_word = '单价\r\n（元）'
-        _matched_word = pyFCM.fuzzy_match(_raw_word)
-        print(f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配")
+        _raw_word = '建  筑\r\n工  程'
+        _matched_word, similarity_score, = pyFCM.fuzzy_match(_raw_word)
+        print(f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配，匹配度'{similarity_score}")
         return jsonify({'message': f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配"})
     else:
         return jsonify({'error': '上传失败，未知错误'})
