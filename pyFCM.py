@@ -1,7 +1,5 @@
 from fuzzychinese import FuzzyChineseMatch
 import pandas as pd
-
-
 def fuzzy_match(raw_word):
     # 初始化 FuzzyChineseMatch 对象
     _fcm = FuzzyChineseMatch(ngram_range=(3, 3), analyzer='stroke')
@@ -19,5 +17,3 @@ def fuzzy_match(raw_word):
 
     # 返回匹配结果
     return rt_matches[0][0]
-
-

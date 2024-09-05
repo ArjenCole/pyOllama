@@ -4,7 +4,7 @@ import os
 
 import ai
 import pyExcel
-import FCM
+import pyFCM
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -43,7 +43,7 @@ def dropzone_upload():
 
         # ai.excel_ai(headers)
         raw_word = '单价\r\n（元）'
-        matched_word = FCM.fuzzy_match(raw_word)
+        matched_word = pyFCM.fuzzy_match(raw_word)
         print(f"识别的结论: '{raw_word}' 与 '{matched_word}'匹配")
 
         return jsonify({'message': '文件上传成功'})
