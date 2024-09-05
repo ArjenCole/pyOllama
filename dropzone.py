@@ -42,10 +42,9 @@ def dropzone_upload():
         # print(headers)
 
         # ai.excel_ai(headers)
-        raw_word = '  建筑工'
+        raw_word = '单价\r\n（元）'
         matched_word = FCM.fuzzy_match(raw_word)
         print(f"识别的结论: '{raw_word}' 与 '{matched_word}'匹配")
-
 
         return jsonify({'message': '文件上传成功'})
     return jsonify({'error': '上传失败，未知错误'})
