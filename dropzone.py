@@ -42,13 +42,9 @@ def dropzone_upload():
         # print(headers)
 
         # ai.excel_ai(headers)
-        target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '费用及项目名称']
-        raw_word = '建筑工程'
-        matched_word, similarity_score = FCM.fuzzy_match(raw_word, target_words)
-        if matched_word:
-            print(f"识别的结论: '{raw_word}' 与 '{matched_word}' 相似度为 {similarity_score:.2f}")
-        else:
-            print(f"识别的结论: '{raw_word}' 在目标字符串中没有找到匹配项")
+        raw_word = '  建筑工'
+        matched_word = FCM.fuzzy_match(raw_word)
+        print(f"识别的结论: '{raw_word}' 与 '{matched_word}'匹配")
 
 
         return jsonify({'message': '文件上传成功'})
