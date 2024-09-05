@@ -1,4 +1,5 @@
 import openpyxl
+import pandas as pd
 
 
 def extract_headers(filename, sheetname=None):
@@ -24,4 +25,6 @@ def extract_headers(filename, sheetname=None):
     return header_data
 
 
-
+def get_workbook(p_file_path):
+    _data_frame_dict = pd.read_excel(p_file_path, sheet_name=None)
+    return _data_frame_dict
