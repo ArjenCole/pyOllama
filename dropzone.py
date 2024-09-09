@@ -27,7 +27,8 @@ def dropzone_upload():
     # print('filename', _file.filename)
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
-        pyExcel.get_workbook(_dict['DIR'])
+        # _work_book_similarity = workbook_similarity(_dict['DIR'])
+
         _raw_word = '建  筑\r\n工  程'
         _matched_word, similarity_score, = pyFCM.fuzzy_match(_raw_word)
         print(f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配，匹配度'{similarity_score}")
@@ -48,6 +49,27 @@ def file_save(p_file):
         p_file.save(_file_path)
         print(_file_path)
         return {'DIR': _file_path}
+
+
+def workbook_similarity(p_dir):
+    _work_book = pyExcel.get_workbook(p_dir)
+    rt_work_book = pyExcel.new_workbook
+    print(_work_book,rt_work_book)
+
+    for fe_sheet_name in _work_book.sheetnames:
+        _worksheet = _work_book[fe_sheet_name]
+
+        for fe_row in range(1, _worksheet.max_row + 1):
+            for fe_col in range(1, _worksheet.max_column + 1):
+                rt_work_book[fe_sheet_name][fe_row][fe_col] = match_f4(_worksheet[fe_row][fe_col])
+    return rt_work_book
+
+
+def match_f4(p_raw_word):
+    _target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
+
+    _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
+    return rt_similarity_score
 
 
 if __name__ == '__main__':
