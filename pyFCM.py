@@ -1,18 +1,20 @@
 from fuzzychinese import FuzzyChineseMatch
 import pandas as pd
 
+# 定义目标词汇列表
+TARGET_WORDS = ['工程或费用名称', '建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量',
+                '单位价值（元）', '备注',
+                '项', '目', '节', '细目', '序号']
 
-def fuzzy_match(p_raw_word):
+
+def fuzzy_match(p_raw_word, p_target_words=None):
     # 初始化 FuzzyChineseMatch 对象
+    if p_target_words is None:
+        p_target_words = TARGET_WORDS
     _fcm = FuzzyChineseMatch(ngram_range=(3, 3), analyzer='stroke')
 
-    # 定义目标词汇列表
-    _target_words = ['工程或费用名称', '建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量',
-                     '单位价值（元）', '备注',
-                     '项', '目', '节', '细目', '序号']
-
     # 训练模型
-    _fcm.fit(_target_words)
+    _fcm.fit(p_target_words)
 
     # 使用 transform 方法查找与 p_raw_word 最相近的词
     rt_matches = _fcm.transform([p_raw_word], n=3)
@@ -26,4 +28,3 @@ def fuzzy_match(p_raw_word):
         return matched_words, similarity_scores
     else:
         return None, None
-
