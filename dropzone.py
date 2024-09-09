@@ -27,7 +27,8 @@ def dropzone_upload():
     # print('filename', _file.filename)
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
-        # _work_book_similarity = workbook_similarity(_dict['DIR'])
+        _work_book_similarity = workbook_similarity(_dict['DIR'])
+        # _work_book = pyExcel.get_workbook(_dict['DIR'])
 
         _raw_word = '建  筑\r\n工  程'
         _matched_word, similarity_score, = pyFCM.fuzzy_match(_raw_word)
@@ -53,15 +54,18 @@ def file_save(p_file):
 
 def workbook_similarity(p_dir):
     _work_book = pyExcel.get_workbook(p_dir)
-    rt_work_book = pyExcel.new_workbook
-    print(_work_book,rt_work_book)
+    rt_work_book = pyExcel.new_workbook()
 
-    for fe_sheet_name in _work_book.sheetnames:
-        _worksheet = _work_book[fe_sheet_name]
+    for fe_sheet_name in _work_book.keys():
+        _work_sheet = _work_book[fe_sheet_name]
+        rt_work_book.update({fe_sheet_name: _work_sheet})
 
-        for fe_row in range(1, _worksheet.max_row + 1):
-            for fe_col in range(1, _worksheet.max_column + 1):
-                rt_work_book[fe_sheet_name][fe_row][fe_col] = match_f4(_worksheet[fe_row][fe_col])
+        for fe_row in range(0, _work_sheet.shape[0]):
+            for fe_col in range(0, _work_sheet.shape[1]):
+                # print(fe_row, fe_col, _work_sheet.iloc[fe_row][fe_col])
+                _similarity = match_f4(_work_sheet.iloc[fe_row][fe_col])
+                rt_work_book[fe_sheet_name].iloc[fe_row][fe_col] = _similarity
+                print(fe_row, fe_col, _work_sheet.iloc[fe_row][fe_col], rt_work_book[fe_sheet_name].iloc[fe_row][fe_col], _similarity)
     return rt_work_book
 
 
@@ -69,7 +73,10 @@ def match_f4(p_raw_word):
     _target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
 
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
-    return rt_similarity_score
+    if rt_similarity_score is not None:
+        return rt_similarity_score[0][0]
+    else:
+        return None
 
 
 if __name__ == '__main__':

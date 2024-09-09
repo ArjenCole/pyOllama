@@ -3,7 +3,8 @@ import pandas as pd
 
 
 def new_workbook():
-    return pd.DataFrame()
+    rt_workbook = dict()
+    return rt_workbook
 
 
 def get_workbook(p_file_path):

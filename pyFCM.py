@@ -16,13 +16,18 @@ def fuzzy_match(p_raw_word, p_target_words=None):
     # 训练模型
     _fcm.fit(p_target_words)
 
-    # 使用 transform 方法查找与 p_raw_word 最相近的词
-    rt_matches = _fcm.transform([p_raw_word], n=3)
+    try:
+        # 尝试执行可能引发异常的代码
+        # 使用 transform 方法查找与 p_raw_word 最相近的词
+        rt_matches = _fcm.transform([p_raw_word], n=3)
+    except:
+        # 处理异常
+        rt_matches = None
 
-    print('rt_matches', rt_matches)
+    # print('rt_matches', rt_matches)
     # 获取匹配的字符串及其相似度分数
     # 检查是否有匹配结果
-    if 1 == 1:
+    if rt_matches is not None:
         matched_words = rt_matches[0]  # 这里假设我们只关心第一个匹配结果
         similarity_scores = _fcm.get_similarity_score()  # 获取相似度分数
         return matched_words, similarity_scores
