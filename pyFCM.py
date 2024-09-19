@@ -36,6 +36,6 @@ def fuzzy_match(p_raw_word, p_target_words=None):
 
 
 def test_para(para):
-    para = para+1
-    rtp = para+1
+    para = {'细目', '序号'}
+    rtp = para
     return rtp

@@ -27,7 +27,6 @@ def dropzone_upload():
     # print('filename', _file.filename)
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
-        '''
         _work_book_similarity = workbook_similarity(_dict['DIR'])
         # _work_book = pyExcel.get_workbook(_dict['DIR'])
 
@@ -35,10 +34,7 @@ def dropzone_upload():
         _matched_word, similarity_score, = pyFCM.fuzzy_match(_raw_word)
         print(f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配，匹配度'{similarity_score}")
         return jsonify({'message': f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配"})
-        '''
-        tt = 0
-        rtt = pyFCM.test_para(tt)
-        print(tt, rtt)
+
     else:
         return jsonify({'error': '上传失败，未知错误'})
 
