@@ -27,8 +27,8 @@ def dropzone_upload():
     # print('filename', _file.filename)
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
-        _match_sheet_name, _match_sheet_row = workbook_similarity(_dict['DIR'])
-        print('匹配的sheet名称', _match_sheet_name, _match_sheet_row)
+        _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
+        # print('匹配的sheet名称', _match_sheet_name, _match_sheet_row, _match_sheet_col)
         # _work_book = pyExcel.get_workbook(_dict['DIR'])
 
         '''
@@ -62,16 +62,18 @@ def workbook_similarity(p_dir):
     _max_similarity = 0
     rt_match_sheet_name = None
     rt_match_sheet_row = 0
+    rt_match_sheet_col = 0
 
     for fe_sheet_name in _work_book.keys():
         _work_sheet = _work_book[fe_sheet_name]
         print('表单名：', fe_sheet_name)
-        print(_work_sheet)
-        _sheet_match_row, _sheet_similarity = worksheet_similarity(_work_sheet)
+        # print(_work_sheet)
+        _sheet_match_row, _sheet_match_col, _sheet_similarity = worksheet_similarity(_work_sheet)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
             rt_match_sheet_name = fe_sheet_name
             rt_match_sheet_row = _sheet_match_row
+            rt_match_sheet_col = _sheet_match_col
 
         '''
         for fe_row in range(0, _work_sheet.shape[0]):
@@ -81,17 +83,23 @@ def workbook_similarity(p_dir):
                 rt_work_book[fe_sheet_name].iloc[fe_row][fe_col] = _similarity
                 print(fe_row, fe_col, _work_sheet.iloc[fe_row][fe_col], rt_work_book[fe_sheet_name].iloc[fe_row][fe_col], _similarity)
         '''
-    return rt_match_sheet_name, rt_match_sheet_row
+    print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row+1, '行，第', rt_match_sheet_col+1, '列')
+    print('匹配的单元格内容', _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col]
+          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+1]
+          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+2]
+          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+3])
+    return rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
 
 
 def worksheet_similarity(p_sheet):
 
     rt_match_row = 0
+    rt_match_col = 0
     rt_max_similarity = 0
     for fe_row in range(0, min(20, p_sheet.shape[0])):
         _f4_similarity_array = list(range(21))
         for fe_col in range(0, min(20, p_sheet.shape[1])):
-            print("行列", fe_row, fe_col)
+            # print("行列", fe_row, fe_col)
             _str = str(p_sheet.iloc[fe_row][fe_col])
             if _str == 'nan':
                 f4_similarity = 0
@@ -106,7 +114,8 @@ def worksheet_similarity(p_sheet):
             if _row_similarity > rt_max_similarity:
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
-    return rt_match_row, rt_max_similarity
+                rt_match_col = fe_col - 3
+    return rt_match_row, rt_match_col, rt_max_similarity
 
 
 def match_f4(p_raw_word):
@@ -114,6 +123,9 @@ def match_f4(p_raw_word):
     _target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
 
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
+
+    # print('_matched_word', type(_matched_word), _matched_word)
+    # print('sim', type(rt_similarity_score), rt_similarity_score)
     if rt_similarity_score is not None:
         return rt_similarity_score[0][0]
     else:
