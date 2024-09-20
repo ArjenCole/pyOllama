@@ -65,6 +65,8 @@ def workbook_similarity(p_dir):
 
     for fe_sheet_name in _work_book.keys():
         _work_sheet = _work_book[fe_sheet_name]
+        print('表单名：', fe_sheet_name)
+        print(_work_sheet)
         _sheet_match_row, _sheet_similarity = worksheet_similarity(_work_sheet)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
@@ -83,15 +85,19 @@ def workbook_similarity(p_dir):
 
 
 def worksheet_similarity(p_sheet):
-    print("表单", p_sheet)
 
     rt_match_row = 0
     rt_max_similarity = 0
     for fe_row in range(0, min(20, p_sheet.shape[0])):
         _f4_similarity_array = list(range(21))
         for fe_col in range(0, min(20, p_sheet.shape[1])):
-            print("行列", fe_row, fe_col, p_sheet.iloc[fe_row][fe_col])
-            f4_similarity = match_f4(p_sheet.iloc[fe_row][fe_col])
+            print("行列", fe_row, fe_col)
+            _str = str(p_sheet.iloc[fe_row][fe_col])
+            if _str == 'nan':
+                f4_similarity = 0
+            else:
+                print(_str)
+                f4_similarity = match_f4(_str)
             _f4_similarity_array[fe_col] = f4_similarity
             _row_similarity = 0
             if fe_col >= 3:
