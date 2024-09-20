@@ -28,7 +28,7 @@ def dropzone_upload():
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
         _match_sheet_name, _match_sheet_row = workbook_similarity(_dict['DIR'])
-        print('匹配sheet', _match_sheet_name, _match_sheet_row)
+        print('匹配的sheet名称', _match_sheet_name, _match_sheet_row)
         # _work_book = pyExcel.get_workbook(_dict['DIR'])
 
         '''
@@ -37,7 +37,7 @@ def dropzone_upload():
         print(f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配，匹配度'{similarity_score}")        
         return jsonify({'message': f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配"})
         '''
-        return None
+        return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
     else:
         return jsonify({'error': '上传失败，未知错误'})
 
