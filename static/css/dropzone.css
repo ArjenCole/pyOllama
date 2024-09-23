@@ -37,3 +37,8 @@ body {
 .hidden {
     display: none;
 }
+
+#uploadProgress {
+    width: 100%; /* 设置进度条的宽度 */
+    margin-top: 10px; /* 设置进度条与上面元素的间距 */
+}

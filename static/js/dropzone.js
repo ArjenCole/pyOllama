@@ -39,6 +39,17 @@
 
         var xhr = new XMLHttpRequest();
         xhr.open('POST', '/upload', true); // 打开一个新连接，使用POST请求访问服务器上的/upload路径
+
+        // 监听上传进度事件
+        xhr.upload.onprogress = function(event) {
+            if (event.lengthComputable) {
+                var percentComplete = (event.loaded / event.total) * 100;
+                var progressbar = document.getElementById('uploadProgress');
+                progressbar.value = percentComplete;
+            }
+        };
+
+
         xhr.onload = function () {
             if (xhr.status === 200) {
                 alert('文件上传成功');
@@ -46,9 +57,13 @@
                 alert('文件上传失败');
             }
             console.log('Server response:', xhr.responseText);
+            // 上传完成后重置进度条
+            document.getElementById('uploadProgress').value = 0;
         };
         xhr.onerror = function () {
             alert('文件上传发生错误');
+            // 上传错误时重置进度条
+            document.getElementById('uploadProgress').value = 0;
         };
         xhr.send(formData); // 发送请求
     }
