@@ -39,7 +39,7 @@ def dropzone_upload():
         '''
         return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
     else:
-        return jsonify({'error': '上传失败，未知错误'})
+        return jsonify({'error': '文件保存失败'})
 
 
 def file_save(p_file):
