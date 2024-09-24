@@ -3,7 +3,8 @@ import re  # 正则表达式
 from flask import Flask, render_template_string, request, jsonify, render_template
 from flask_cors import CORS
 import os
-import pyExcel
+
+import openpyxl
 
 import ai
 import pyExcel
@@ -33,7 +34,7 @@ def dropzone_upload():
         # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
         _match_dict = workbook_similarity(_dict['DIR'])
         return jsonify({
-                           'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})"})
+            'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})"})
     else:
         return jsonify({'error': '文件保存失败'})
 
@@ -53,7 +54,8 @@ def file_save(p_file):
 
 
 def workbook_similarity(p_dir):
-    _work_book = pyExcel.get_workbook(p_dir)
+    _work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
+    _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
 
     _max_similarity = 0
     rt_match_sheet_name = None
@@ -61,8 +63,11 @@ def workbook_similarity(p_dir):
     rt_match_sheet_col = 0
 
     for fe_sheet_name in _work_book.keys():
+        if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
+            continue
         _work_sheet = _work_book[fe_sheet_name]
-        print('表单名：', fe_sheet_name)
+
+        print('正在处理表单：', fe_sheet_name)
         # print(_work_sheet)
         _sheet_match_row, _sheet_match_col, _sheet_similarity = worksheet_similarity(_work_sheet)
         if _sheet_similarity > _max_similarity:
