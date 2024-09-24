@@ -27,17 +27,12 @@ def dropzone_upload():
     # print('filename', _file.filename)
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
-        _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
-        # print('匹配的sheet名称', _match_sheet_name, _match_sheet_row, _match_sheet_col)
-        # _work_book = pyExcel.get_workbook(_dict['DIR'])
+        # _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
+        _match_dict = workbook_similarity(_dict['DIR'])
 
-        '''
-        _raw_word = '建  筑\r\n工  程'
-        _matched_word, similarity_score, = pyFCM.fuzzy_match(_raw_word)
-        print(f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配，匹配度'{similarity_score}")        
-        return jsonify({'message': f"识别的结论: '{_raw_word}' 与 '{_matched_word}'匹配"})
-        '''
-        return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
+
+        # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
+        return jsonify({'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})"})
     else:
         return jsonify({'error': '文件保存失败'})
 
@@ -88,7 +83,15 @@ def workbook_similarity(p_dir):
           , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+1]
           , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+2]
           , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+3])
-    return rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
+
+    rt_dict = {'表单名称': rt_match_sheet_name,
+               '建筑工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col},
+               '安装工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col+1},
+               '设备及工器具购置费': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col+2},
+               '其他费用': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col+3}}
+
+    # return rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
+    return rt_dict
 
 
 def worksheet_similarity(p_sheet):

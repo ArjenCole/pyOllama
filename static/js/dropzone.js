@@ -52,7 +52,7 @@
             if (xhr.status === 200) {
                 // 解析服务器返回的JSON响应
                 var response = JSON.parse(xhr.responseText);
-                alert('文件上传成功: ' + response.message);
+                alert('文件上传成功！！！' + response.message);
             } else {
                 // 解析服务器返回的JSON响应
                 var response = JSON.parse(xhr.responseText);
