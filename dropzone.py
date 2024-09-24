@@ -1,3 +1,5 @@
+import re  # 正则表达式
+
 from flask import Flask, render_template_string, request, jsonify, render_template
 from flask_cors import CORS
 import os
@@ -28,11 +30,10 @@ def dropzone_upload():
     _dict = file_save(_file)
     if 'DIR' in _dict.keys():
         # _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
-        _match_dict = workbook_similarity(_dict['DIR'])
-
-
         # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
-        return jsonify({'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})"})
+        _match_dict = workbook_similarity(_dict['DIR'])
+        return jsonify({
+                           'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})"})
     else:
         return jsonify({'error': '文件保存失败'})
 
@@ -78,24 +79,24 @@ def workbook_similarity(p_dir):
                 rt_work_book[fe_sheet_name].iloc[fe_row][fe_col] = _similarity
                 print(fe_row, fe_col, _work_sheet.iloc[fe_row][fe_col], rt_work_book[fe_sheet_name].iloc[fe_row][fe_col], _similarity)
         '''
-    print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row+1, '行，第', rt_match_sheet_col+1, '列')
+    print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row + 1, '行，第',
+          rt_match_sheet_col + 1, '列')
     print('匹配的单元格内容', _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col]
-          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+1]
-          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+2]
-          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col+3])
+          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + 1]
+          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + 2]
+          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + 3])
 
     rt_dict = {'表单名称': rt_match_sheet_name,
                '建筑工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col},
-               '安装工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col+1},
-               '设备及工器具购置费': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col+2},
-               '其他费用': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col+3}}
+               '安装工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + 1},
+               '设备及工器具购置费': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + 2},
+               '其他费用': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + 3}}
 
     # return rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
     return rt_dict
 
 
 def worksheet_similarity(p_sheet):
-
     rt_match_row = 0
     rt_match_col = 0
     rt_max_similarity = 0
@@ -107,7 +108,7 @@ def worksheet_similarity(p_sheet):
             if _str == 'nan':
                 f4_similarity = 0
             else:
-                print(_str)
+                # print(_str)
                 f4_similarity = match_f4(_str)
             _f4_similarity_array[fe_col] = f4_similarity
             _row_similarity = 0
@@ -124,6 +125,8 @@ def worksheet_similarity(p_sheet):
 def match_f4(p_raw_word):
     # ('match_f4', p_raw_word)
     _target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
+
+    p_raw_word = re.sub(r'[^\u4e00-\u9fff]+', "", p_raw_word)  # 用正则表达式删除字符串中所有非汉字字符，提高识别效率
 
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
 
