@@ -34,7 +34,11 @@ def dropzone_upload():
         # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
         _match_dict = workbook_similarity(_dict['DIR'])
         return jsonify({
-            'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})"})
+            'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，"
+                       f"建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})，"
+                       f"安装工程坐标：({_match_dict['安装工程']['row']},{_match_dict['安装工程']['col']})，"
+                       f"设备及工器具购置费坐标：({_match_dict['设备及工器具购置费']['row']},{_match_dict['设备及工器具购置费']['col']})，"
+                       f"其他费用坐标：({_match_dict['其他费用']['row']},{_match_dict['其他费用']['col']})"})
     else:
         return jsonify({'error': '文件保存失败'})
 
