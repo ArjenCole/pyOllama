@@ -1,4 +1,3 @@
-import re  # 正则表达式
 
 from flask import Flask, render_template_string, request, jsonify, render_template
 from flask_cors import CORS
@@ -80,26 +79,24 @@ def workbook_similarity(p_dir):
             rt_match_sheet_row = _sheet_match_row
             rt_match_sheet_col = _sheet_match_col
 
-        '''
-        for fe_row in range(0, _work_sheet.shape[0]):
-            for fe_col in range(0, _work_sheet.shape[1]):
-                # print(fe_row, fe_col, _work_sheet.iloc[fe_row][fe_col])
-                _similarity = match_f4(_work_sheet.iloc[fe_row][fe_col])
-                rt_work_book[fe_sheet_name].iloc[fe_row][fe_col] = _similarity
-                print(fe_row, fe_col, _work_sheet.iloc[fe_row][fe_col], rt_work_book[fe_sheet_name].iloc[fe_row][fe_col], _similarity)
-        '''
     print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row + 1, '行，第',
           rt_match_sheet_col + 1, '列')
-    print('匹配的单元格内容', _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col]
-          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + 1]
-          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + 2]
-          , _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + 3])
+    rt_dict = {'表单名称': rt_match_sheet_name}
 
-    rt_dict = {'表单名称': rt_match_sheet_name,
-               '建筑工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col},
-               '安装工程': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + 1},
-               '设备及工器具购置费': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + 2},
-               '其他费用': {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + 3}}
+
+    _target_words = {'建筑工程', '安装工程', '设备及工器具购置费', '其他费用'}
+    for fe_target_word in _target_words:
+        _max_similarity = 0
+        _max_fe_i = 0
+        for fe_i in range(4):
+            _raw_word = _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + fe_i]
+            _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, fe_target_word)
+            if _similarity_score[0] > _max_similarity:
+                _max_similarity = _similarity_score[0]
+                _max_fe_i = fe_i
+        rt_dict[fe_target_word] = {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + _max_fe_i}
+
+
 
     # return rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
     return rt_dict
@@ -135,14 +132,13 @@ def match_f4(p_raw_word):
     # ('match_f4', p_raw_word)
     _target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
 
-    p_raw_word = re.sub(r'[^\u4e00-\u9fff]+', "", p_raw_word)  # 用正则表达式删除字符串中所有非汉字字符，提高识别效率
-
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
 
     # print('_matched_word', type(_matched_word), _matched_word)
     # print('sim', type(rt_similarity_score), rt_similarity_score)
     if rt_similarity_score is not None:
-        return rt_similarity_score[0][0]
+        # print('rt_similarity_score', rt_similarity_score)
+        return rt_similarity_score[0]
     else:
         return 0
 
