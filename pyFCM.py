@@ -1,5 +1,6 @@
 from fuzzychinese import FuzzyChineseMatch
-import pandas as pd
+import re  # 正则表达式
+# import pandas as pd
 
 # 定义目标词汇列表
 TARGET_WORDS = ['工程或费用名称', '建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量',
@@ -12,6 +13,8 @@ def fuzzy_match(p_raw_word, p_target_words=None):
     if p_target_words is None:
         p_target_words = TARGET_WORDS
     _fcm = FuzzyChineseMatch(ngram_range=(3, 3), analyzer='stroke')
+
+    p_raw_word = re.sub(r'[^\u4e00-\u9fff]+', "", p_raw_word)  # 用正则表达式删除字符串中所有非汉字字符，提高识别效率
 
     # 训练模型
     _fcm.fit(p_target_words)
@@ -29,7 +32,8 @@ def fuzzy_match(p_raw_word, p_target_words=None):
     # 检查是否有匹配结果
     if rt_matches is not None:
         matched_words = rt_matches[0]  # 这里假设我们只关心第一个匹配结果
-        similarity_scores = _fcm.get_similarity_score()  # 获取相似度分数
+        similarity_scores = _fcm.get_similarity_score()[0]  # 获取相似度分数
+
         return matched_words, similarity_scores
     else:
         return None, None
