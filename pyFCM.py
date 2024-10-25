@@ -14,7 +14,7 @@ def fuzzy_match(p_raw_word, p_target_words=None):
         p_target_words = TARGET_WORDS
     _fcm = FuzzyChineseMatch(ngram_range=(3, 3), analyzer='stroke')
 
-    p_raw_word = re.sub(r'[^\u4e00-\u9fff]+', "", p_raw_word)  # 用正则表达式删除字符串中所有非汉字字符，提高识别效率
+    p_raw_word = re.sub(r'[^\u4e00-\u9fff]+', "", str(p_raw_word))  # 用正则表达式删除字符串中所有非汉字字符，提高识别效率
 
     # 训练模型
     _fcm.fit(p_target_words)
