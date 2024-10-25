@@ -90,7 +90,7 @@ def workbook_similarity(p_dir):
         _max_fe_i = 0
         for fe_i in range(4):
             _raw_word = _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + fe_i]
-            _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, fe_target_word)
+            _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, [fe_target_word])
             if _similarity_score[0] > _max_similarity:
                 _max_similarity = _similarity_score[0]
                 _max_fe_i = fe_i
