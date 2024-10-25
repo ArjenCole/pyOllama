@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template_string, request, jsonify, render_template
 from flask_cors import CORS
 import os
@@ -13,6 +12,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 CORS(app)  # 允许跨源请求
 UPLOADS_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/uploads'  #上传文件存储地址
+TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
 
 
 @app.route('/dropzone')
@@ -34,10 +34,16 @@ def dropzone_upload():
         _match_dict = workbook_similarity(_dict['DIR'])
         return jsonify({
             'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，"
-                       f"建筑工程坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})，"
-                       f"安装工程坐标：({_match_dict['安装工程']['row']},{_match_dict['安装工程']['col']})，"
-                       f"设备及工器具购置费坐标：({_match_dict['设备及工器具购置费']['row']},{_match_dict['设备及工器具购置费']['col']})，"
-                       f"其他费用坐标：({_match_dict['其他费用']['row']},{_match_dict['其他费用']['col']})"})
+                       f"建筑工程 坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})，"
+                       f"安装工程 坐标：({_match_dict['安装工程']['row']},{_match_dict['安装工程']['col']})，"
+                       f"设备及工器具购置费 坐标：({_match_dict['设备及工器具购置费']['row']},{_match_dict['设备及工器具购置费']['col']})，"
+                       f"其他费用 坐标：({_match_dict['其他费用']['row']},{_match_dict['其他费用']['col']})"
+                       f"合计 坐标：({_match_dict['合计']['row']},{_match_dict['合计']['col']})"
+                       f"单位 坐标：({_match_dict['单位']['row']},{_match_dict['单位']['col']})"
+                       f"数量 坐标：({_match_dict['数量']['row']},{_match_dict['数量']['col']})"
+                       f"单位价值（元） 坐标：({_match_dict['单位价值元']['row']},{_match_dict['单位价值元']['col']})"
+
+        })
     else:
         return jsonify({'error': '文件保存失败'})
 
@@ -79,26 +85,8 @@ def workbook_similarity(p_dir):
             rt_match_sheet_row = _sheet_match_row
             rt_match_sheet_col = _sheet_match_col
 
-    print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row + 1, '行，第',
-          rt_match_sheet_col + 1, '列')
-    rt_dict = {'表单名称': rt_match_sheet_name}
-
-
-    _target_words = {'建筑工程', '安装工程', '设备及工器具购置费', '其他费用'}
-    for fe_target_word in _target_words:
-        _max_similarity = 0
-        _max_fe_i = 0
-        for fe_i in range(4):
-            _raw_word = _work_book[rt_match_sheet_name].iloc[rt_match_sheet_row][rt_match_sheet_col + fe_i]
-            _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, [fe_target_word])
-            if _similarity_score[0] > _max_similarity:
-                _max_similarity = _similarity_score[0]
-                _max_fe_i = fe_i
-        rt_dict[fe_target_word] = {'row': rt_match_sheet_row, 'col': rt_match_sheet_col + _max_fe_i}
-
-
-
-    # return rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
+    # print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row + 1, '行，第', rt_match_sheet_col + 1, '列')
+    rt_dict = sort_f8(_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col)
     return rt_dict
 
 
@@ -112,25 +100,27 @@ def worksheet_similarity(p_sheet):
             # print("行列", fe_row, fe_col)
             _str = str(p_sheet.iloc[fe_row][fe_col])
             if _str == 'nan':
-                f4_similarity = 0
+                _f4_similarity = 0
             else:
                 # print(_str)
-                f4_similarity = match_f4(_str)
-            _f4_similarity_array[fe_col] = f4_similarity
+                _f4_similarity = match_f4(_str)
+            _f4_similarity_array[fe_col] = _f4_similarity
             _row_similarity = 0
-            if fe_col >= 3:
-                _row_similarity = (_f4_similarity_array[fe_col] + _f4_similarity_array[fe_col - 1]
-                                   + _f4_similarity_array[fe_col - 2] + _f4_similarity_array[fe_col - 3])
+            if fe_col > 8:
+                for fe_i in range(8):
+                    _row_similarity += _f4_similarity_array[fe_col - fe_i]
+                # _row_similarity = (_f4_similarity_array[fe_col] + _f4_similarity_array[fe_col - 1] + _f4_similarity_array[fe_col - 2] + _f4_similarity_array[fe_col - 3])
+
             if _row_similarity > rt_max_similarity:
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
-                rt_match_col = fe_col - 3
+                rt_match_col = fe_col - 7
     return rt_match_row, rt_match_col, rt_max_similarity
 
 
 def match_f4(p_raw_word):
     # ('match_f4', p_raw_word)
-    _target_words = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
+    _target_words = TARGET_WORDS_F8
 
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
 
@@ -141,6 +131,27 @@ def match_f4(p_raw_word):
         return rt_similarity_score[0]
     else:
         return 0
+
+
+def sort_f8(p_work_book, p_sheet_name, p_row, p_col):
+    _target_words = TARGET_WORDS_F8
+    rt_dict = {'表单名称': p_sheet_name}
+    for fe_target_word in _target_words:
+        _max_similarity = 0
+        _max_fe_i = 0
+        for fe_i in range(8):
+            _raw_word = p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]
+            _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, [fe_target_word])
+            # 加上识别单元格下方单元格一起识别，以防两个文字被拆分到两个单元格里
+            _raw_word = str(_raw_word) + str(p_work_book[p_sheet_name].iloc[p_row + 1][p_col + fe_i])
+            _matched_word1, _similarity_score1, = pyFCM.fuzzy_match(_raw_word, [fe_target_word])
+            _score = max(_similarity_score[0], _similarity_score1[0])
+            if _score > _max_similarity:
+                _max_similarity = _score
+                _max_fe_i = fe_i
+        rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i}
+    print(rt_dict)
+    return rt_dict
 
 
 if __name__ == '__main__':
