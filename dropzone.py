@@ -106,15 +106,19 @@ def workbook_similarity(p_dir):
         sort_words(_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
                    TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0)))
     # 判断序号模式是“项目节还是序号”
-    _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'], rt_dict['细目']['sim'])
-    _No_Num = rt_dict['序号']['sim']
-    if _No_xmjx >= _No_Num:
-        del rt_dict['序号']
-    else:
-        del rt_dict['项']
-        del rt_dict['目']
-        del rt_dict['节']
-        del rt_dict['细目']
+    if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
+        if '细目' in rt_dict:
+            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'], rt_dict['细目']['sim'])
+        else:
+            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'])
+        _No_Num = rt_dict['序号']['sim']
+        if _No_xmjx >= _No_Num:
+            del rt_dict['序号']
+        else:
+            del rt_dict['项']
+            del rt_dict['目']
+            del rt_dict['节']
+            del rt_dict['细目']
     print(rt_dict)
     return rt_dict
 
@@ -162,12 +166,12 @@ def match_f8(p_raw_word):
         return 0
 
 
-def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=8):
+def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
     rt_dict = {}
-    for fe_target_word in p_target_words:
+    for fe_i in range(p_max_col):
         _max_similarity = 0
         _max_fe_i = 0
-        for fe_i in range(p_max_col):
+        for fe_target_word in p_target_words:
             _raw_word = p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]
             _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
             # 加上识别单元格下方单元格一起识别，以防两个文字被拆分到两个单元格里
@@ -175,9 +179,16 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
             _matched_word1, _similarity_score1, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
             _score = max(_similarity_score[0], _similarity_score1[0])
             if _score > _max_similarity:
-                _max_similarity = _score
-                _max_fe_i = fe_i
-        rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i, 'sim': str(round(_max_similarity, 3))}
+                if fe_target_word not in rt_dict:
+                    rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i,
+                                               'sim': str(round(_max_similarity, 3))}
+                else:
+                    if _score > float(rt_dict[fe_target_word]['sim']):
+                        _max_similarity = _score
+                        _max_fe_i = fe_i
+                        rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i,
+                                                   'sim': str(round(_max_similarity, 3))}
+    print(rt_dict)
     return rt_dict
 
 
