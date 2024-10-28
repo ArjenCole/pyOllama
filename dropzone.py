@@ -105,6 +105,16 @@ def workbook_similarity(p_dir):
     rt_dict.update(
         sort_words(_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
                    TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0)))
+    # 判断序号模式是“项目节还是序号”
+    _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'], rt_dict['细目']['sim'])
+    _No_Num = rt_dict['序号']['sim']
+    if _No_xmjx >= _No_Num:
+        del rt_dict['序号']
+    else:
+        del rt_dict['项']
+        del rt_dict['目']
+        del rt_dict['节']
+        del rt_dict['细目']
     print(rt_dict)
     return rt_dict
 
@@ -154,7 +164,6 @@ def match_f8(p_raw_word):
 
 def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=8):
     rt_dict = {}
-    print(p_max_col)
     for fe_target_word in p_target_words:
         _max_similarity = 0
         _max_fe_i = 0
