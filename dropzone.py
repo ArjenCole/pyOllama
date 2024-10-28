@@ -15,7 +15,7 @@ UPLOADS_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/uploads'  #上传文件存储�
 TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
 TARGET_WORDS_NO = ['序号', '项', '目', '节', '细目', '工程或费用名称']
 MAPPING_TABLE = {'建筑工程': ['建筑工程'],
-                 '安装工程': ['安装工程'],
+                 '安装工程': ['安装工程', '管件材料及设备安装工程'],
                  '设备及工器具购置费': ['设备及工器具购置费', '设备购置', '工器具购置'],
                  '其他费用': ['其他费用'],
                  '合计': ['合计'],
@@ -97,14 +97,14 @@ def workbook_similarity(p_dir):
             rt_match_sheet_row = _sheet_match_row
             rt_match_sheet_col = _sheet_match_col
 
-    # print('匹配的表单：', rt_match_sheet_name, '匹配单元格坐标位置在第', rt_match_sheet_row + 1, '行，第', rt_match_sheet_col + 1, '列')
+    #  print('表单：', rt_match_sheet_name, ' 第', rt_match_sheet_row, '行，第', rt_match_sheet_col, '列', '*计数从0开始')
     rt_dict = {'表单名称': rt_match_sheet_name}
     rt_dict.update(
         sort_words(_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col,
                    TARGET_WORDS_F8))
     rt_dict.update(
         sort_words(_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
-                   TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0)))
+                   TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0) - 1))
     # 判断序号模式是“项目节还是序号”
     if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
         if '细目' in rt_dict:
@@ -113,12 +113,14 @@ def workbook_similarity(p_dir):
             _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'])
         _No_Num = rt_dict['序号']['sim']
         if _No_xmjx >= _No_Num:
-            del rt_dict['序号']
+            if '序号' in rt_dict:
+                del rt_dict['序号']
         else:
             del rt_dict['项']
             del rt_dict['目']
             del rt_dict['节']
-            del rt_dict['细目']
+            if '细目' in rt_dict:
+                del rt_dict['细目']
     print(rt_dict)
     return rt_dict
 
@@ -167,6 +169,7 @@ def match_f8(p_raw_word):
 
 
 def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
+    # print('sort_words', p_row, p_col, p_max_col)
     rt_dict = {}
     for fe_i in range(p_max_col):
         _max_similarity = 0
@@ -174,12 +177,16 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
         for fe_target_word in p_target_words:
             _raw_word = p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]
             _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
+            # print(_raw_word, _matched_word, _similarity_score)
             # 加上识别单元格下方单元格一起识别，以防两个文字被拆分到两个单元格里
             _raw_word = str(_raw_word) + str(p_work_book[p_sheet_name].iloc[p_row + 1][p_col + fe_i])
             _matched_word1, _similarity_score1, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
+            # print(_raw_word, _matched_word, _similarity_score)
             _score = max(_similarity_score[0], _similarity_score1[0])
             if _score > _max_similarity:
                 if fe_target_word not in rt_dict:
+                    _max_similarity = _score
+                    _max_fe_i = fe_i
                     rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i,
                                                'sim': str(round(_max_similarity, 3))}
                 else:
@@ -188,7 +195,7 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
                         _max_fe_i = fe_i
                         rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i,
                                                    'sim': str(round(_max_similarity, 3))}
-    print(rt_dict)
+    # print('=', rt_dict)
     return rt_dict
 
 
