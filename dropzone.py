@@ -16,7 +16,7 @@ TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费'
 TARGET_WORDS_NO = ['序号', '项', '目', '节', '细目', '工程或费用名称']
 MAPPING_TABLE = {'建筑工程': ['建筑工程'],
                  '安装工程': ['安装工程', '管件材料及设备安装工程'],
-                 '设备及工器具购置费': ['设备及工器具购置费', '设备购置', '工器具购置'],
+                 '设备及工器具购置费': ['设备及工器具购置费', '设备购置', '工器具购置', '设备费'],
                  '其他费用': ['其他费用'],
                  '合计': ['合计'],
                  '单位': ['单位'],
@@ -104,7 +104,7 @@ def workbook_similarity(p_dir):
                    TARGET_WORDS_F8))
     rt_dict.update(
         sort_words(_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
-                   TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0) - 1))
+                   TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0) ))
     # 判断序号模式是“项目节还是序号”
     if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
         if '细目' in rt_dict:
