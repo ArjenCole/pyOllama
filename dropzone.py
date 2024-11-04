@@ -9,8 +9,11 @@ import pyExcel
 import pyFCM
 from werkzeug.utils import secure_filename
 
+
 app = Flask(__name__)
 CORS(app)  # 允许跨源请求
+
+
 UPLOADS_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/uploads'  #上传文件存储地址
 TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
 TARGET_WORDS_NO = ['序号', '项', '目', '节', '细目', '工程或费用名称']
@@ -32,18 +35,21 @@ def dropzone():
     return render_template('dropzone.html')
 
 
-@app.route('/upload', methods=['POST'])
 def dropzone_upload():
     if 'file0' not in request.files:
         return jsonify({'error': '没有文件部分'})
     # file = request.files.get('file')
     _file = request.files['file0']
     # print('filename', _file.filename)
-    _dict = file_save(_file)
-    if 'DIR' in _dict.keys():
+    rt_dict = file_save(_file)
+    return rt_dict
+
+
+def dropzone_parse(p_dict):
+    if 'DIR' in p_dict.keys():
         # _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
         # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
-        _match_dict = workbook_similarity(_dict['DIR'])
+        _match_dict = workbook_similarity(p_dict['DIR'])
         return jsonify({
             'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，"
                        f"建筑工程 坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})，"
@@ -200,4 +206,6 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    # app.run(debug=True, host='0.0.0.0', port=8080)
+    socketio.run(app, debug=True, host='0.0.0.0', port=8080)
+

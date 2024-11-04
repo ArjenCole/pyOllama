@@ -2,6 +2,7 @@
     // 获取dropzone和fileInput DOM元素
     var dropzone = document.getElementById('dropzone');
     var fileInput = document.getElementById('fileInput');
+    const socket = io();
 
     // 拖拽时显示为复制状态
     dropzone.addEventListener('dragover', function(event) {
@@ -36,38 +37,17 @@
         for (var i = 0; i < files.length; i++) {
             formData.append('file' + i, files[i]);
         }
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/upload', true); // 打开一个新连接，使用POST请求访问服务器上的/upload路径
-
-        // 监听上传进度事件
-        xhr.upload.onprogress = function(event) {
-            if (event.lengthComputable) {
-                var percentComplete = (event.loaded / event.total) * 100;
-                var progressbar = document.getElementById('uploadProgress');
-                progressbar.value = percentComplete;
-            }
-        };
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                // 解析服务器返回的JSON响应
-                var response = JSON.parse(xhr.responseText);
-                alert('文件上传成功！！！' + response.message);
-            } else {
-                // 解析服务器返回的JSON响应
-                var response = JSON.parse(xhr.responseText);
-                alert('文件上传失败: ' + response.message);
-            }
-            console.log('Server response:', xhr.responseText);
-            // 上传完成后重置进度条
-            document.getElementById('uploadProgress').value = 0;
-        };
-        xhr.onerror = function () {
-            alert('文件上传发生错误');
-            // 上传错误时重置进度条
-            document.getElementById('uploadProgress').value = 0;
-        };
-
-
-        xhr.send(formData); // 发送请求
+        socket.emit('upload', {filename: files[0].name});
+        fetch('/upload', {
+            method: 'POST',
+            body: formData
+        }).then(response => response.json())
+            .then(data => {
+                socket.emit('progress', {progress: data.progress});
+            });
     }
+
+    socket.on('progress', function (data) {
+        const progressBar = document.getElementById('progressBar');
+        progressBar.style.width = data.progress + '%';
+    });

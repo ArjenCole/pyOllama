@@ -1,8 +1,14 @@
-from flask import Flask, render_template
-from dropzone import dropzone_upload  # 假设dropzone.py在同一包内，使用相对导入
+import time
+
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO
+import os
+
+from dropzone import dropzone_upload, dropzone_parse  # 假设dropzone.py在同一包内，使用相对导入
 from ai import chat_ai
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 
 @app.route('/')
@@ -19,8 +25,16 @@ def dropzone():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    _dict = dropzone_upload()
+    socketio.emit('progress', {'progress': 30})
+    time.sleep(1)
+    dropzone_parse(_dict)
+
+    progress = 100  # 假设文件处理完成
+    socketio.emit('progress', {'progress': progress})
+    return {'progress': progress}
     # 使用从dropzone.py导入的upload_file逻辑处理上传
-    return dropzone_upload()
+    # return dropzone_upload()
 
 
 @app.route('/chat')
@@ -41,4 +55,5 @@ def knowledge():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    # app.run(debug=True, host='0.0.0.0', port=8080)
+    socketio.run(app, debug=True, host='0.0.0.0', port=8080)

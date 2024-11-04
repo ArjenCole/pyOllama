@@ -38,7 +38,9 @@ body {
     display: none;
 }
 
-#uploadProgress {
-    width: 100%; /* 设置进度条的宽度 */
-    margin-top: 10px; /* 设置进度条与上面元素的间距 */
+#progressBar {
+    width: 0%;
+    height: 20px;
+    background-color: green;
+    transition: width 0.5s ease-in-out;
 }
