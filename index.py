@@ -26,13 +26,11 @@ def dropzone():
 @app.route('/upload', methods=['POST'])
 def upload():
     _dict = dropzone_upload()
-    socketio.emit('progress', {'progress': 30})
+    socketio.emit('progress', {'progress': 10})
     time.sleep(1)
     dropzone_parse(_dict)
-
-    progress = 100  # 假设文件处理完成
-    socketio.emit('progress', {'progress': progress})
-    return {'progress': progress}
+    socketio.emit('progress', {'progress': 100})
+    return {'progress': 100}
     # 使用从dropzone.py导入的upload_file逻辑处理上传
     # return dropzone_upload()
 
