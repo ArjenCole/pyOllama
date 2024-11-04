@@ -49,7 +49,7 @@ def dropzone_parse(p_dict):
     if 'DIR' in p_dict.keys():
         # _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
         # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
-        _match_dict = workbook_similarity(p_dict['DIR'])
+        _match_dict = dropzone_parse_workbook(p_dict['DIR'])
         return jsonify({
             'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，"
                        f"建筑工程 坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})，"
@@ -80,8 +80,8 @@ def file_save(p_file):
         return {'DIR': _file_path}
 
 
-def workbook_similarity(p_dir):
-    _work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
+def dropzone_parse_workbook(p_dir):
+    rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
     _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
 
     _max_similarity = 0
@@ -89,10 +89,10 @@ def workbook_similarity(p_dir):
     rt_match_sheet_row = 0
     rt_match_sheet_col = 0
 
-    for fe_sheet_name in _work_book.keys():
+    for fe_sheet_name in rt_work_book.keys():
         if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
             continue
-        _work_sheet = _work_book[fe_sheet_name]
+        _work_sheet = rt_work_book[fe_sheet_name]
 
         print('正在处理表单：', fe_sheet_name)
         # print(_work_sheet)
@@ -102,14 +102,17 @@ def workbook_similarity(p_dir):
             rt_match_sheet_name = fe_sheet_name
             rt_match_sheet_row = _sheet_match_row
             rt_match_sheet_col = _sheet_match_col
+    return rt_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
 
+
+def dropzone_parse_worksheet(rt_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col):
     #  print('表单：', rt_match_sheet_name, ' 第', rt_match_sheet_row, '行，第', rt_match_sheet_col, '列', '*计数从0开始')
     rt_dict = {'表单名称': rt_match_sheet_name}
     rt_dict.update(
-        sort_words(_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col,
+        sort_words(rt_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col,
                    TARGET_WORDS_F8))
     rt_dict.update(
-        sort_words(_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
+        sort_words(rt_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
                    TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0) ))
     # 判断序号模式是“项目节还是序号”
     if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
@@ -206,6 +209,6 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
 
 
 if __name__ == '__main__':
-    # app.run(debug=True, host='0.0.0.0', port=8080)
-    socketio.run(app, debug=True, host='0.0.0.0', port=8080)
+    app.run(debug=True, host='0.0.0.0', port=8080)
+    # socketio.run(app, debug=True, host='0.0.0.0', port=8080)
 

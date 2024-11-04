@@ -4,7 +4,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 import os
 
-from dropzone import dropzone_upload, dropzone_parse  # 假设dropzone.py在同一包内，使用相对导入
+from dropzone import dropzone_upload, dropzone_parse_workbook, dropzone_parse_worksheet  # 假设dropzone.py在同一包内，使用相对导入
 from ai import chat_ai
 
 app = Flask(__name__)
@@ -25,12 +25,14 @@ def dropzone():
 
 @app.route('/upload', methods=['POST'])
 def upload():
-    _dict = dropzone_upload()
-    socketio.emit('progress', {'progress': 10})
-    time.sleep(1)
-    dropzone_parse(_dict)
-    socketio.emit('progress', {'progress': 100})
-    return {'progress': 100}
+    _dir_dict = dropzone_upload()
+    _progress_bar(10)
+    if 'DIR' in _dir_dict.keys():
+        _work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col = dropzone_parse_workbook(_dir_dict['DIR'])
+        _progress_bar(50)
+        _dict = dropzone_parse_worksheet(_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col)
+    _progress_bar(100)
+    return {'??': 100}
     # 使用从dropzone.py导入的upload_file逻辑处理上传
     # return dropzone_upload()
 
@@ -50,6 +52,12 @@ def ai():
 def knowledge():
     # 知识库页面路由
     return render_template('knowledge.html')
+
+
+def _progress_bar(p_percent):
+    socketio.emit('progress', {'progress': p_percent})
+    if p_percent < 100:
+        time.sleep(1)
 
 
 if __name__ == '__main__':
