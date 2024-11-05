@@ -25,13 +25,14 @@ def dropzone():
 
 @app.route('/upload', methods=['POST'])
 def upload():
+    _stage_update(5, '开始上传文件')
     _dir_dict = dropzone_upload()
-    _progress_bar(10)
+    _stage_update(10, '文件上传成功！开始解析工作簿……')
     if 'DIR' in _dir_dict.keys():
         _work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col = dropzone_parse_workbook(_dir_dict['DIR'])
-        _progress_bar(50)
+        _stage_update(50, '文件解析成功！开始解析工作表……')
         _dict = dropzone_parse_worksheet(_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col)
-    _progress_bar(100)
+    _stage_update(100, '文件识别成功！')
     return {'??': 100}
     # 使用从dropzone.py导入的upload_file逻辑处理上传
     # return dropzone_upload()
@@ -54,8 +55,8 @@ def knowledge():
     return render_template('knowledge.html')
 
 
-def _progress_bar(p_percent):
-    socketio.emit('progress', {'progress': p_percent})
+def _stage_update(p_percent, p_stage):
+    socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
     if p_percent < 100:
         time.sleep(1)
 

@@ -2,6 +2,7 @@
     // 获取dropzone和fileInput DOM元素
     var dropzone = document.getElementById('dropzone');
     var fileInput = document.getElementById('fileInput');
+    var progressLable = document.getElementById('progressLabel')
     const socket = io();
 
     // 拖拽时显示为复制状态
@@ -50,4 +51,5 @@
     socket.on('progress', function (data) {
         const progressBar = document.getElementById('progressBar');
         progressBar.style.width = data.progress + '%';
+        progressLable.textContent = data.stage
     });
