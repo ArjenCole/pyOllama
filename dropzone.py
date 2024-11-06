@@ -159,6 +159,7 @@ def _worksheet_similarity(p_sheet):
     # print('p_sheet.shape', p_sheet.shape)
     for fe_row in range(0, min(ROW_RANGE, p_sheet.shape[0])):
         _f4_similarity_array = list(range(COL_RANGE+8))
+        _row_similarity = 0
         for fe_col in range(0, min(COL_RANGE+8, p_sheet.shape[1])):
             # print("行列", _col_name(fe_col), fe_row+1)
             _str = str(p_sheet.iloc[fe_row][fe_col])
@@ -169,11 +170,15 @@ def _worksheet_similarity(p_sheet):
                 _f4_similarity = _match_f8(_str)
             _f4_similarity_array[fe_col] = _f4_similarity
 
+            _row_similarity += _f4_similarity_array[fe_col]
+            if fe_col >= 8:
+                _row_similarity -= _f4_similarity_array[fe_col-8]
+            '''
             _row_similarity = 0
             if fe_col >= 8:
                 for fe_i in range(8):
                     _row_similarity += _f4_similarity_array[fe_col - fe_i]
-
+            '''
             if _row_similarity > rt_max_similarity:
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
