@@ -45,9 +45,13 @@ def dropzone_upload(p_socketio):
 
     if 'DIR' in _dir_dict.keys():
         _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
-        _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
-        _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
-        _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
+        try:
+            _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
+        except Exception as e:
+            _stage_update(p_socketio, 100, f'文件识别异常！发生错误：{e}')
+        else:
+            _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
+            _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
 
@@ -90,8 +94,11 @@ def _file_save(p_file):
 
 
 def _parse_workbook(p_dir, p_socketio):
-    rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
-    _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
+    try:
+        rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
+        _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
+    except Exception as e:
+        raise
 
     _max_similarity = 0
     _match_sheet_name = None
