@@ -45,7 +45,7 @@ def dropzone_upload(p_socketio):
     _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
 
     if 'DIR' in _dir_dict.keys():
-        _dict = dropzone_parse_workbook(_dir_dict['DIR'], p_socketio)
+        _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
         _stage_update(p_socketio, 80, '文件解析成功！开始解析工作表……')
     _stage_update(p_socketio, 100, '文件识别成功！')
 
@@ -56,7 +56,7 @@ def dropzone_parse(p_dict):
     if 'DIR' in p_dict.keys():
         # _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
         # return jsonify({'message': f"匹配的sheet名称: '{_match_sheet_name}' 匹配的行：'{_match_sheet_row + 1}'"})
-        _match_dict = dropzone_parse_workbook(p_dict['DIR'])
+        _match_dict = _parse_workbook(p_dict['DIR'])
         return jsonify({
             'message': f"检测到匹配的表单：《{_match_dict['表单名称']}》，"
                        f"建筑工程 坐标：({_match_dict['建筑工程']['row']},{_match_dict['建筑工程']['col']})，"
@@ -87,7 +87,7 @@ def _file_save(p_file):
         return {'DIR': _file_path}
 
 
-def dropzone_parse_workbook(p_dir, p_socketio):
+def _parse_workbook(p_dir, p_socketio):
     rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
     _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
 
@@ -101,14 +101,14 @@ def dropzone_parse_workbook(p_dir, p_socketio):
     _progress_step = int((80 - _progress) / (_sheet_count + 1))
 
     for fe_sheet_name in rt_work_book.keys():
+        _progress += _progress_step
+        _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name)
+        print('正在处理表单：', fe_sheet_name)
         if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
             continue
         _work_sheet = rt_work_book[fe_sheet_name]
 
-        _progress += _progress_step
-        _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name)
-        print('正在处理表单：', fe_sheet_name)
-        _sheet_match_row, _sheet_match_col, _sheet_similarity = worksheet_similarity(_work_sheet)
+        _sheet_match_row, _sheet_match_col, _sheet_similarity = _worksheet_similarity(_work_sheet)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
             _match_sheet_name = fe_sheet_name
@@ -117,18 +117,18 @@ def dropzone_parse_workbook(p_dir, p_socketio):
     #  print('表单：', rt_match_sheet_name, ' 第', rt_match_sheet_row, '行，第', rt_match_sheet_col, '列', '*计数从0开始')
     rt_dict = {'表单名称': _match_sheet_name}
     rt_dict.update(
-        sort_words(rt_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col,
-                   TARGET_WORDS_F8))
+        _sort_words(rt_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col,
+                    TARGET_WORDS_F8))
     rt_dict.update(
-        sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
-                   TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
+        _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
+                    TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
 
     rt_dict = _parse_no(rt_dict)
     print(rt_dict)
     return rt_dict
 
 
-def worksheet_similarity(p_sheet):
+def _worksheet_similarity(p_sheet):
     rt_match_row = 0
     rt_match_col = 0
     rt_max_similarity = 0
@@ -141,7 +141,7 @@ def worksheet_similarity(p_sheet):
                 _f4_similarity = 0
             else:
                 # print(_str)
-                _f4_similarity = match_f8(_str)
+                _f4_similarity = _match_f8(_str)
             _f4_similarity_array[fe_col] = _f4_similarity
             _row_similarity = 0
             if fe_col > 8:
@@ -156,7 +156,7 @@ def worksheet_similarity(p_sheet):
     return rt_match_row, rt_match_col, rt_max_similarity
 
 
-def match_f8(p_raw_word):
+def _match_f8(p_raw_word):
     # ('match_f4', p_raw_word)
     _target_words = TARGET_WORDS_F8
 
@@ -171,7 +171,7 @@ def match_f8(p_raw_word):
         return 0
 
 
-def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
+def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
     # print('sort_words', p_row, p_col, p_max_col)
     rt_dict = {}
     for fe_i in range(p_max_col):
