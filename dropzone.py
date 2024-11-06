@@ -28,6 +28,9 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
                  '序号': ['序号'], '项': ['项'], '目': ['目'], '节': ['节'], '细目': ['细目'],
                  '工程或费用名称': ['工程或费用名称'],
                  }
+# 表头识别时，《建筑工程》单元格的检索范围
+ROW_RANGE = 10
+COL_RANGE = 20
 
 
 @app.route('/dropzone')
@@ -58,12 +61,13 @@ def dropzone_upload(p_socketio):
             _stage_update(p_socketio, 100, f'文件识别异常！发生错误：{e}')
         else:
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
-            _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
+            _stage_update(p_socketio, 100, '文件识别成功！\n\r' + _beautify(_dict))
 
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
 
     return _dir_dict
+
 
 '''
 def dropzone_parse(p_dict):
@@ -86,6 +90,7 @@ def dropzone_parse(p_dict):
     else:
         return jsonify({'error': '文件保存失败'})
 '''
+
 
 def _file_save(p_file):
     if p_file.filename == '':
@@ -127,12 +132,13 @@ def _parse_workbook(p_dir, p_socketio):
         _work_sheet = rt_work_book[fe_sheet_name]
 
         _sheet_match_row, _sheet_match_col, _sheet_similarity = _worksheet_similarity(_work_sheet)
+        # print('max', _sheet_match_row,_sheet_match_col,_sheet_similarity)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
             _match_sheet_name = fe_sheet_name
             _match_sheet_row = _sheet_match_row
             _match_sheet_col = _sheet_match_col
-    #  print('表单：', rt_match_sheet_name, ' 第', rt_match_sheet_row, '行，第', rt_match_sheet_col, '列', '*计数从0开始')
+    # print('表单：', _match_sheet_name, ' 第', _match_sheet_row, '行，第', _match_sheet_col, '列', '*计数从0开始')
     rt_dict = {'表单名称': _match_sheet_name}
     rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col,
@@ -150,10 +156,11 @@ def _worksheet_similarity(p_sheet):
     rt_match_row = 0
     rt_match_col = 0
     rt_max_similarity = 0
-    for fe_row in range(0, min(20, p_sheet.shape[0])):
-        _f4_similarity_array = list(range(21))
-        for fe_col in range(0, min(20, p_sheet.shape[1])):
-            # print("行列", fe_row, fe_col)
+    # print('p_sheet.shape', p_sheet.shape)
+    for fe_row in range(0, min(ROW_RANGE, p_sheet.shape[0])):
+        _f4_similarity_array = list(range(COL_RANGE+8))
+        for fe_col in range(0, min(COL_RANGE+8, p_sheet.shape[1])):
+            # print("行列", _col_name(fe_col), fe_row+1)
             _str = str(p_sheet.iloc[fe_row][fe_col])
             if _str == 'nan':
                 _f4_similarity = 0
@@ -217,7 +224,6 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
 
 # 判断序号模式是“项目节还是序号”
 def _parse_no(p_dict):
-
     rt_dict = p_dict
     if '项' in rt_dict or '目' in rt_dict or '节' in rt_dict or '细目' in rt_dict:
         _No_xmjx = 0.00
@@ -242,6 +248,28 @@ def _stage_update(p_socketio, p_percent, p_stage):
     p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
     if p_percent < 100:
         time.sleep(0.1)
+
+
+def _beautify(p_dict):
+    rt_str = '该文件中匹配的总表表单是《' + p_dict['表单名称'] + '》\n 其中：'
+    _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    for fe_key in TARGET_WORDS_F8:
+        if fe_key in p_dict.keys():
+            rt_str = (rt_str + fe_key + '坐标:(' +
+                      _col_name(p_dict[fe_key]['col']) + ',' +
+                      str(p_dict[fe_key]['row'] + 1) + ')\n')
+    return rt_str
+
+
+def _col_name(p_int):
+    _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    rt_str = ''
+    result_int = int(p_int / 26)
+    result_mod = p_int % 26
+    if result_int > 0:
+        rt_str = _alphabet[result_int-1]
+    rt_str += _alphabet[result_mod]
+    return rt_str
 
 
 if __name__ == '__main__':
