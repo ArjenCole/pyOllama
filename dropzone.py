@@ -50,7 +50,7 @@ def dropzone_upload(p_socketio):
     if 'DIR' in _dir_dict.keys():
         _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
         # 调试的时候用这段
-        '''
+
         _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
         _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
         _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
@@ -64,7 +64,7 @@ def dropzone_upload(p_socketio):
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
             _stage_update(p_socketio, 100, '文件识别成功！\r\n' + _beautify(_dict))
             # print(_beautify(_dict))
-
+'''
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
 
