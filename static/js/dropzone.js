@@ -51,5 +51,7 @@
     socket.on('progress', function (data) {
         const progressBar = document.getElementById('progressBar');
         progressBar.style.width = data.progress + '%';
-        progressLable.textContent = data.stage
+        var inputString = data.stage;
+        // 将换行符替换为HTML的换行标签
+        progressLable.innerHTML = inputString.replace(/\n/g, '<br>')
     });

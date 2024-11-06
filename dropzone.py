@@ -62,7 +62,8 @@ def dropzone_upload(p_socketio):
             _stage_update(p_socketio, 100, f'文件识别异常！发生错误：{e}')
         else:
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
-            _stage_update(p_socketio, 100, '文件识别成功！\n\r' + _beautify(_dict))
+            _stage_update(p_socketio, 100, '文件识别成功！\r\n' + _beautify(_dict))
+            # print(_beautify(_dict))
 
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
@@ -261,9 +262,13 @@ def _beautify(p_dict):
     _key_words = TARGET_WORDS_NO + TARGET_WORDS_F8
     for fe_key in _key_words:
         if fe_key in p_dict.keys():
-            rt_str = (rt_str + fe_key + ' 坐标:(' +
-                      _col_name(p_dict[fe_key]['col']) + ',' +
-                      str(p_dict[fe_key]['row'] + 1) + ') \n')
+            _str = (fe_key + ' 坐标:(' +
+                    _col_name(p_dict[fe_key]['col']) + ',' +
+                    str(p_dict[fe_key]['row'] + 1) + ') ')
+            if fe_key in TARGET_WORDS_F8 or fe_key == '工程或费用名称':
+                rt_str = rt_str + '\n' + _str
+            else:
+                rt_str = rt_str + _str
     return rt_str
 
 
