@@ -1,3 +1,5 @@
+import time
+
 from flask import Flask, render_template_string, request, jsonify, render_template
 from flask_cors import CORS
 import os
@@ -35,14 +37,21 @@ def dropzone():
     return render_template('dropzone.html')
 
 
-def dropzone_upload():
+def dropzone_upload(p_socketio):
     if 'file0' not in request.files:
         return jsonify({'error': '没有文件部分'})
     # file = request.files.get('file')
     _file = request.files['file0']
     # print('filename', _file.filename)
-    rt_dict = file_save(_file)
-    return rt_dict
+    _dir_dict = _file_save(_file)
+    _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
+
+    if 'DIR' in _dir_dict.keys():
+        _dict = dropzone_parse_workbook(_dir_dict['DIR'], p_socketio)
+        _stage_update(p_socketio, 80, '文件解析成功！开始解析工作表……')
+    _stage_update(p_socketio, 100, '文件识别成功！')
+
+    return _dir_dict
 
 
 def dropzone_parse(p_dict):
@@ -66,7 +75,7 @@ def dropzone_parse(p_dict):
         return jsonify({'error': '文件保存失败'})
 
 
-def file_save(p_file):
+def _file_save(p_file):
     if p_file.filename == '':
         return {'error': '没有选择文件'}
     if p_file:
@@ -80,7 +89,7 @@ def file_save(p_file):
         return {'DIR': _file_path}
 
 
-def dropzone_parse_workbook(p_dir):
+def dropzone_parse_workbook(p_dir, p_socketio):
     rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
     _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
 
@@ -89,23 +98,24 @@ def dropzone_parse_workbook(p_dir):
     rt_match_sheet_row = 0
     rt_match_sheet_col = 0
 
+    _sheet_count = len(rt_work_book)
+    _progress = 10
+    _progress_step = int((80-_progress) / (_sheet_count+1))
+
     for fe_sheet_name in rt_work_book.keys():
         if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
             continue
         _work_sheet = rt_work_book[fe_sheet_name]
 
         print('正在处理表单：', fe_sheet_name)
-        # print(_work_sheet)
+        _progress += _progress_step
+        _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name)
         _sheet_match_row, _sheet_match_col, _sheet_similarity = worksheet_similarity(_work_sheet)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
             rt_match_sheet_name = fe_sheet_name
             rt_match_sheet_row = _sheet_match_row
             rt_match_sheet_col = _sheet_match_col
-    return rt_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col
-
-
-def dropzone_parse_worksheet(rt_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col):
     #  print('表单：', rt_match_sheet_name, ' 第', rt_match_sheet_row, '行，第', rt_match_sheet_col, '列', '*计数从0开始')
     rt_dict = {'表单名称': rt_match_sheet_name}
     rt_dict.update(
@@ -206,6 +216,12 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
                                                    'sim': str(round(_max_similarity, 3))}
     # print('=', rt_dict)
     return rt_dict
+
+
+def _stage_update(p_socketio, p_percent, p_stage):
+    p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
+    if p_percent < 100:
+        time.sleep(1)
 
 
 if __name__ == '__main__':
