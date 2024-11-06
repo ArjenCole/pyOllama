@@ -45,8 +45,8 @@ def dropzone_upload(p_socketio):
 
     if 'DIR' in _dir_dict.keys():
         _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
-        '''
         # 调试的时候用这段
+        '''
         _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
         _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
         _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
@@ -65,7 +65,7 @@ def dropzone_upload(p_socketio):
 
     return _dir_dict
 
-
+'''
 def dropzone_parse(p_dict):
     if 'DIR' in p_dict.keys():
         # _match_sheet_name, _match_sheet_row, _match_sheet_col = workbook_similarity(_dict['DIR'])
@@ -85,7 +85,7 @@ def dropzone_parse(p_dict):
         })
     else:
         return jsonify({'error': '文件保存失败'})
-
+'''
 
 def _file_save(p_file):
     if p_file.filename == '':
@@ -101,6 +101,7 @@ def _file_save(p_file):
         return {'DIR': _file_path}
 
 
+# 对于对工作簿进行处理
 def _parse_workbook(p_dir, p_socketio):
     try:
         rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
@@ -144,6 +145,7 @@ def _parse_workbook(p_dir, p_socketio):
     return rt_dict
 
 
+# 对于单个表单前20行、20列进行f8识别
 def _worksheet_similarity(p_sheet):
     rt_match_row = 0
     rt_match_col = 0
@@ -172,23 +174,18 @@ def _worksheet_similarity(p_sheet):
     return rt_match_row, rt_match_col, rt_max_similarity
 
 
+# 识别从《建筑工程》到《单位价值（元）》的八个关键词
 def _match_f8(p_raw_word):
-    # ('match_f4', p_raw_word)
     _target_words = TARGET_WORDS_F8
-
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
-
-    # print('_matched_word', type(_matched_word), _matched_word)
-    # print('sim', type(rt_similarity_score), rt_similarity_score)
     if rt_similarity_score is not None:
-        # print('rt_similarity_score', rt_similarity_score)
         return rt_similarity_score[0]
     else:
         return 0
 
 
+# 将匹配F8的单元格与F8关键字进行匹配对应
 def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
-    # print('sort_words', p_row, p_col, p_max_col)
     rt_dict = {}
     for fe_i in range(p_max_col):
         _max_similarity = 0
@@ -218,7 +215,9 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
     return rt_dict
 
 
-def _parse_no(p_dict):  # 判断序号模式是“项目节还是序号”
+# 判断序号模式是“项目节还是序号”
+def _parse_no(p_dict):
+
     rt_dict = p_dict
     if '项' in rt_dict or '目' in rt_dict or '节' in rt_dict or '细目' in rt_dict:
         _No_xmjx = 0.00
@@ -238,6 +237,7 @@ def _parse_no(p_dict):  # 判断序号模式是“项目节还是序号”
     return rt_dict
 
 
+# 更新前端进度条
 def _stage_update(p_socketio, p_percent, p_stage):
     p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
     if p_percent < 100:
