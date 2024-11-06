@@ -31,6 +31,7 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
 # 表头识别时，《建筑工程》单元格的检索范围
 ROW_RANGE = 10
 COL_RANGE = 20
+KEYWORDS_NUM = 8
 
 
 @app.route('/dropzone')
@@ -158,9 +159,9 @@ def _worksheet_similarity(p_sheet):
     rt_max_similarity = 0
     # print('p_sheet.shape', p_sheet.shape)
     for fe_row in range(0, min(ROW_RANGE, p_sheet.shape[0])):
-        _f4_similarity_array = list(range(COL_RANGE+8))
+        _f4_similarity_array = list(range(COL_RANGE+KEYWORDS_NUM))
         _row_similarity = 0
-        for fe_col in range(0, min(COL_RANGE+8, p_sheet.shape[1])):
+        for fe_col in range(0, min(COL_RANGE+KEYWORDS_NUM, p_sheet.shape[1])):
             # print("行列", _col_name(fe_col), fe_row+1)
             _str = str(p_sheet.iloc[fe_row][fe_col])
             if _str == 'nan':
@@ -171,18 +172,18 @@ def _worksheet_similarity(p_sheet):
             _f4_similarity_array[fe_col] = _f4_similarity
 
             _row_similarity += _f4_similarity_array[fe_col]
-            if fe_col >= 8:
-                _row_similarity -= _f4_similarity_array[fe_col-8]
+            if fe_col >= KEYWORDS_NUM:
+                _row_similarity -= _f4_similarity_array[fe_col-KEYWORDS_NUM]
             '''
             _row_similarity = 0
-            if fe_col >= 8:
-                for fe_i in range(8):
+            if fe_col >= KEYWORDS_NUM:
+                for fe_i in range(KEYWORDS_NUM):
                     _row_similarity += _f4_similarity_array[fe_col - fe_i]
             '''
             if _row_similarity > rt_max_similarity:
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
-                rt_match_col = fe_col - 7
+                rt_match_col = fe_col - KEYWORDS_NUM + 1
     return rt_match_row, rt_match_col, rt_max_similarity
 
 
