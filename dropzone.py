@@ -42,12 +42,14 @@ def dropzone_upload(p_socketio):
     _file = request.files['file0']
     # print('filename', _file.filename)
     _dir_dict = _file_save(_file)
-    _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
 
     if 'DIR' in _dir_dict.keys():
+        _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
         _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
-        _stage_update(p_socketio, 80, '文件解析成功！开始解析工作表……')
-    _stage_update(p_socketio, 100, '文件识别成功！')
+        _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
+        _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
+    else:
+        _stage_update(p_socketio, 100, '文件上传失败！')
 
     return _dir_dict
 
