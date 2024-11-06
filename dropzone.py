@@ -94,9 +94,9 @@ def dropzone_parse_workbook(p_dir, p_socketio):
     _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
 
     _max_similarity = 0
-    rt_match_sheet_name = None
-    rt_match_sheet_row = 0
-    rt_match_sheet_col = 0
+    _match_sheet_name = None
+    _match_sheet_row = 0
+    _match_sheet_col = 0
 
     _sheet_count = len(rt_work_book)
     _progress = 10
@@ -107,23 +107,23 @@ def dropzone_parse_workbook(p_dir, p_socketio):
             continue
         _work_sheet = rt_work_book[fe_sheet_name]
 
-        print('正在处理表单：', fe_sheet_name)
         _progress += _progress_step
         _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name)
+        print('正在处理表单：', fe_sheet_name)
         _sheet_match_row, _sheet_match_col, _sheet_similarity = worksheet_similarity(_work_sheet)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
-            rt_match_sheet_name = fe_sheet_name
-            rt_match_sheet_row = _sheet_match_row
-            rt_match_sheet_col = _sheet_match_col
+            _match_sheet_name = fe_sheet_name
+            _match_sheet_row = _sheet_match_row
+            _match_sheet_col = _sheet_match_col
     #  print('表单：', rt_match_sheet_name, ' 第', rt_match_sheet_row, '行，第', rt_match_sheet_col, '列', '*计数从0开始')
-    rt_dict = {'表单名称': rt_match_sheet_name}
+    rt_dict = {'表单名称': _match_sheet_name}
     rt_dict.update(
-        sort_words(rt_work_book, rt_match_sheet_name, rt_match_sheet_row, rt_match_sheet_col,
+        sort_words(rt_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col,
                    TARGET_WORDS_F8))
     rt_dict.update(
-        sort_words(rt_work_book, rt_match_sheet_name, max(rt_match_sheet_row - 1, 0), max(rt_match_sheet_col - 6, 0),
-                   TARGET_WORDS_NO, rt_match_sheet_col - max(rt_match_sheet_col - 6, 0) ))
+        sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
+                   TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     # 判断序号模式是“项目节还是序号”
     if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
         if '细目' in rt_dict:
