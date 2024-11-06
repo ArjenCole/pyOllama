@@ -259,11 +259,12 @@ def _stage_update(p_socketio, p_percent, p_stage):
 def _beautify(p_dict):
     rt_str = '该文件中匹配的总表表单是《' + p_dict['表单名称'] + '》\n 其中：'
     _alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    for fe_key in TARGET_WORDS_F8:
+    _key_words = TARGET_WORDS_NO + TARGET_WORDS_F8
+    for fe_key in _key_words:
         if fe_key in p_dict.keys():
-            rt_str = (rt_str + fe_key + '坐标:(' +
+            rt_str = (rt_str + fe_key + ' 坐标:(' +
                       _col_name(p_dict[fe_key]['col']) + ',' +
-                      str(p_dict[fe_key]['row'] + 1) + ')\n')
+                      str(p_dict[fe_key]['row'] + 1) + ') \n')
     return rt_str
 
 
