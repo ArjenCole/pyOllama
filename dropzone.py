@@ -225,7 +225,7 @@ def _parse_no(p_dict):  # 判断序号模式是“项目节还是序号”
 def _stage_update(p_socketio, p_percent, p_stage):
     p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
     if p_percent < 100:
-        time.sleep(1)
+        time.sleep(0.1)
 
 
 if __name__ == '__main__':
