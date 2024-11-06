@@ -168,11 +168,11 @@ def _worksheet_similarity(p_sheet):
                 # print(_str)
                 _f4_similarity = _match_f8(_str)
             _f4_similarity_array[fe_col] = _f4_similarity
+
             _row_similarity = 0
-            if fe_col > 8:
+            if fe_col >= 8:
                 for fe_i in range(8):
                     _row_similarity += _f4_similarity_array[fe_col - fe_i]
-                # _row_similarity = (_f4_similarity_array[fe_col] + _f4_similarity_array[fe_col - 1] + _f4_similarity_array[fe_col - 2] + _f4_similarity_array[fe_col - 3])
 
             if _row_similarity > rt_max_similarity:
                 rt_max_similarity = _row_similarity
