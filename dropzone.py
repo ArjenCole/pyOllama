@@ -11,10 +11,8 @@ import pyExcel
 import pyFCM
 from werkzeug.utils import secure_filename
 
-
 app = Flask(__name__)
 CORS(app)  # 允许跨源请求
-
 
 UPLOADS_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/uploads'  #上传文件存储地址
 TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
@@ -100,7 +98,7 @@ def dropzone_parse_workbook(p_dir, p_socketio):
 
     _sheet_count = len(rt_work_book)
     _progress = 10
-    _progress_step = int((80-_progress) / (_sheet_count+1))
+    _progress_step = int((80 - _progress) / (_sheet_count + 1))
 
     for fe_sheet_name in rt_work_book.keys():
         if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
@@ -124,22 +122,8 @@ def dropzone_parse_workbook(p_dir, p_socketio):
     rt_dict.update(
         sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
                    TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
-    # 判断序号模式是“项目节还是序号”
-    if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
-        if '细目' in rt_dict:
-            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'], rt_dict['细目']['sim'])
-        else:
-            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'])
-        _No_Num = rt_dict['序号']['sim']
-        if _No_xmjx >= _No_Num:
-            if '序号' in rt_dict:
-                del rt_dict['序号']
-        else:
-            del rt_dict['项']
-            del rt_dict['目']
-            del rt_dict['节']
-            if '细目' in rt_dict:
-                del rt_dict['细目']
+
+    rt_dict = _parse_no(rt_dict)
     print(rt_dict)
     return rt_dict
 
@@ -218,6 +202,26 @@ def sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_co
     return rt_dict
 
 
+def _parse_no(p_dict):  # 判断序号模式是“项目节还是序号”
+    rt_dict = p_dict
+    if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
+        if '细目' in rt_dict:
+            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'], rt_dict['细目']['sim'])
+        else:
+            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'])
+        _No_Num = rt_dict['序号']['sim']
+        if _No_xmjx >= _No_Num:
+            if '序号' in rt_dict:
+                del rt_dict['序号']
+        else:
+            del rt_dict['项']
+            del rt_dict['目']
+            del rt_dict['节']
+            if '细目' in rt_dict:
+                del rt_dict['细目']
+    return rt_dict
+
+
 def _stage_update(p_socketio, p_percent, p_stage):
     p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
     if p_percent < 100:
@@ -227,4 +231,3 @@ def _stage_update(p_socketio, p_percent, p_stage):
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
     # socketio.run(app, debug=True, host='0.0.0.0', port=8080)
-
