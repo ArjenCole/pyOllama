@@ -45,6 +45,13 @@ def dropzone_upload(p_socketio):
 
     if 'DIR' in _dir_dict.keys():
         _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
+        '''
+        # 调试的时候用这段
+        _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
+        _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
+        _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
+        '''
+        # 演示的时候用这段
         try:
             _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
         except Exception as e:
@@ -52,6 +59,7 @@ def dropzone_upload(p_socketio):
         else:
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
             _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
+
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
 
@@ -131,7 +139,6 @@ def _parse_workbook(p_dir, p_socketio):
     rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
                     TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
-
     rt_dict = _parse_no(rt_dict)
     print(rt_dict)
     return rt_dict
@@ -213,21 +220,21 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
 
 def _parse_no(p_dict):  # 判断序号模式是“项目节还是序号”
     rt_dict = p_dict
-    if '项' in rt_dict and '目' in rt_dict and '节' in rt_dict:
-        if '细目' in rt_dict:
-            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'], rt_dict['细目']['sim'])
-        else:
-            _No_xmjx = max(rt_dict['项']['sim'], rt_dict['目']['sim'], rt_dict['节']['sim'])
-        _No_Num = rt_dict['序号']['sim']
+    if '项' in rt_dict or '目' in rt_dict or '节' in rt_dict or '细目' in rt_dict:
+        _No_xmjx = 0.00
+        _No_Num = 0.00
+        if '项' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['项']['sim']))
+        if '目' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['目']['sim']))
+        if '节' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['节']['sim']))
+        if '细目' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['细目']['sim']))
+        if '序号' in rt_dict: _No_Num = max(_No_Num, float(rt_dict['序号']['sim']))
         if _No_xmjx >= _No_Num:
-            if '序号' in rt_dict:
-                del rt_dict['序号']
+            if '序号' in rt_dict: del rt_dict['序号']
         else:
-            del rt_dict['项']
-            del rt_dict['目']
-            del rt_dict['节']
-            if '细目' in rt_dict:
-                del rt_dict['细目']
+            if '项' in rt_dict: del rt_dict['项']
+            if '目' in rt_dict: del rt_dict['目']
+            if '节' in rt_dict: del rt_dict['节']
+            if '细目' in rt_dict: del rt_dict['细目']
     return rt_dict
 
 
