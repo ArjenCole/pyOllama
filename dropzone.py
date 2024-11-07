@@ -15,6 +15,7 @@ app = Flask(__name__)
 CORS(app)  # 允许跨源请求
 
 UPLOADS_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/uploads'  #上传文件存储地址
+TARGET_WORDS_F4 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
 TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
 TARGET_WORDS_NO = ['序号', '项', '目', '节', '细目', '工程或费用名称']
 MAPPING_TABLE = {'建筑工程': ['建筑工程'],
@@ -154,6 +155,7 @@ def _parse_workbook(p_dir, p_socketio):
                     TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     rt_dict = _parse_no(rt_dict)
     print(rt_dict)
+    rt_dict = _parse_low_sim(rt_dict)
     return rt_dict
 
 
@@ -197,6 +199,8 @@ def _match_f8(p_raw_word):
     _target_words = TARGET_WORDS_F8
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
     if rt_similarity_score is not None:
+        if p_raw_word in TARGET_WORDS_F4:
+            rt_similarity_score[0] = rt_similarity_score[0] * 2
         return rt_similarity_score[0]
     else:
         return 0
@@ -254,6 +258,13 @@ def _parse_no(p_dict):
     return rt_dict
 
 
+def _parse_low_sim(p_dict):
+    rt_dict = p_dict.copy()
+    for fe_key in p_dict.keys():
+        if type(p_dict[fe_key]) is not str:
+            if float(p_dict[fe_key]['sim']) < 0.6:
+                del rt_dict[fe_key]
+    return rt_dict
 # 更新前端进度条
 def _stage_update(p_socketio, p_percent, p_stage):
     p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
