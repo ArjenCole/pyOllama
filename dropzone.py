@@ -50,7 +50,7 @@ def dropzone_upload(p_socketio):
     if 'DIR' in _dir_dict.keys():
         _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
         # 调试的时候用这段
-
+        '''
         _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
         _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
         _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
@@ -64,7 +64,7 @@ def dropzone_upload(p_socketio):
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
             _stage_update(p_socketio, 100, '文件识别成功！\r\n' + _beautify(_dict))
             # print(_beautify(_dict))
-'''
+
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
 
@@ -110,9 +110,12 @@ def _file_save(p_file):
 
 # 对于对工作簿进行处理
 def _parse_workbook(p_dir, p_socketio):
+    isXLS = False
     try:
         rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
         _work_book_openpyxl = openpyxl.load_workbook(p_dir)  # 用openpyxl加载文件用于识别隐藏表单
+    except openpyxl.utils.exceptions.InvalidFileException as e:
+        isXLS = True  # 如果是xls格式的openpyxl库无法解析，因此不使用此库，导致后续隐藏表单无法跳过
     except Exception as e:
         raise
 
@@ -129,8 +132,9 @@ def _parse_workbook(p_dir, p_socketio):
         _progress += _progress_step
         _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name)
         print('正在处理表单：', fe_sheet_name)
-        if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
-            continue
+        if not isXLS:
+            if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
+                continue
         _work_sheet = rt_work_book[fe_sheet_name]
 
         _sheet_match_row, _sheet_match_col, _sheet_similarity = _worksheet_similarity(_work_sheet)
