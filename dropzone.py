@@ -210,8 +210,8 @@ def _match_f8(p_raw_word):
 def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
     rt_dict = {}
     for fe_i in range(p_max_col):
-        _max_similarity = 0
-        _max_fe_i = 0
+        _max_similarity = 0.00
+        _match_target_word = None
         for fe_target_word in p_target_words:
             _raw_word = p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]
             _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
@@ -221,33 +221,41 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
             _matched_word1, _similarity_score1, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
             # print(_raw_word, _matched_word, _similarity_score)
             _score = max(_similarity_score[0], _similarity_score1[0])
-            if _score > _max_similarity:
-                if fe_target_word not in rt_dict:
-                    _max_similarity = _score
-                    _max_fe_i = fe_i
-                    rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i,
-                                               'sim': str(round(_max_similarity, 3))}
-                else:
-                    if _score > float(rt_dict[fe_target_word]['sim']):
-                        _max_similarity = _score
-                        _max_fe_i = fe_i
-                        rt_dict[fe_target_word] = {'row': p_row, 'col': p_col + _max_fe_i,
-                                                   'sim': str(round(_max_similarity, 3))}
+            if _score >= _max_similarity:
+                _max_similarity = _score
+                _match_target_word = fe_target_word
+        if _match_target_word not in rt_dict:
+            rt_dict[_match_target_word] = [{'row': p_row, 'col': p_col + fe_i,
+                                           'sim': str(round(_max_similarity, 3))}]
+        else:
+            rt_dict[_match_target_word].append({'row': p_row, 'col': p_col + fe_i,
+                                                'sim': str(round(_max_similarity, 3))})
+
     # print('=', rt_dict)
     return rt_dict
 
 
 # 判断序号模式是“项目节还是序号”
 def _parse_no(p_dict):
-    rt_dict = p_dict
-    if '项' in rt_dict or '目' in rt_dict or '节' in rt_dict or '细目' in rt_dict:
+    rt_dict = p_dict.copy()
+    _target_words = ['序号', '项', '目', '节', '细目']
+    if '项' in p_dict or '目' in p_dict or '节' in p_dict or '细目' in p_dict:
         _No_xmjx = 0.00
         _No_Num = 0.00
-        if '项' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['项']['sim']))
-        if '目' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['目']['sim']))
-        if '节' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['节']['sim']))
-        if '细目' in rt_dict: _No_xmjx = max(_No_xmjx, float(rt_dict['细目']['sim']))
-        if '序号' in rt_dict: _No_Num = max(_No_Num, float(rt_dict['序号']['sim']))
+        for fe_target_word in _target_words:
+            if fe_target_word in p_dict:
+                _max_similarity = 0.00
+                _max_coordinate = None
+                for fe_coordinate in rt_dict[fe_target_word]:
+                    if float(fe_coordinate['sim']) > _max_similarity:
+                        _max_similarity = float(fe_coordinate['sim'])
+                        _max_coordinate = fe_coordinate
+                rt_dict[fe_target_word] = [_max_coordinate]
+                if fe_target_word == '序号':
+                    _No_Num = max(_No_Num, float(_max_coordinate['sim']))
+                else:
+                    _No_xmjx = max(_No_xmjx, float(_max_coordinate['sim']))
+
         if _No_xmjx >= _No_Num:
             if '序号' in rt_dict: del rt_dict['序号']
         else:
@@ -260,10 +268,12 @@ def _parse_no(p_dict):
 
 def _parse_low_sim(p_dict):
     rt_dict = p_dict.copy()
+    # print(p_dict)
     for fe_key in p_dict.keys():
         if type(p_dict[fe_key]) is not str:
-            if float(p_dict[fe_key]['sim']) < 0.6:
-                del rt_dict[fe_key]
+            for fe_value in p_dict[fe_key]:
+                if float(fe_value['sim']) < 0.6:
+                    del rt_dict[fe_key]
     return rt_dict
 # 更新前端进度条
 def _stage_update(p_socketio, p_percent, p_stage):
@@ -277,9 +287,9 @@ def _beautify(p_dict):
     _key_words = TARGET_WORDS_NO + TARGET_WORDS_F8
     for fe_key in _key_words:
         if fe_key in p_dict.keys():
-            _str = (fe_key + ' 坐标:(' +
-                    _col_name(p_dict[fe_key]['col']) + ',' +
-                    str(p_dict[fe_key]['row'] + 1) + ') ')
+            _str = fe_key + ' 坐标:'
+            for fe_value in p_dict[fe_key]:
+                _str += '(' + _col_name(fe_value['col']) + ',' + str(fe_value['row'] + 1) + ') '
             if fe_key in TARGET_WORDS_F8 or fe_key == '工程或费用名称':
                 rt_str = rt_str + '\n' + _str
             else:
