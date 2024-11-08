@@ -155,7 +155,11 @@ def _parse_workbook(p_dir, p_socketio):
     rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
                     TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
+    rt_dict.update(
+        _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row, 0), max(_match_sheet_col - 6, 0),
+                    TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     rt_dict = _parse_no(rt_dict)
+    print(rt_dict)
     rt_dict = _parse_low_sim(rt_dict)
     print(rt_dict)
     return rt_dict
@@ -219,7 +223,10 @@ def _match_f8(p_raw_word):
 # 将匹配F8的单元格与F8关键字进行匹配对应
 def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
     rt_dict = {}
+    print('!!!', p_work_book[p_sheet_name].iloc[p_row][p_col])
     for fe_i in range(p_max_col):
+        if str(p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]) == 'nan':
+            continue
         _max_similarity = 0.00
         _match_target_word = None
         for fe_target_word in p_target_words:
