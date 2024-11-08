@@ -154,8 +154,8 @@ def _parse_workbook(p_dir, p_socketio):
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
                     TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     rt_dict = _parse_no(rt_dict)
-    print(rt_dict)
     rt_dict = _parse_low_sim(rt_dict)
+    print(rt_dict)
     return rt_dict
 
 
@@ -273,7 +273,7 @@ def _parse_low_sim(p_dict):
         if type(p_dict[fe_key]) is not str:
             for fe_value in p_dict[fe_key]:
                 if float(fe_value['sim']) < 0.6:
-                    del rt_dict[fe_key]
+                    rt_dict[fe_key].remove(fe_value)
     return rt_dict
 # 更新前端进度条
 def _stage_update(p_socketio, p_percent, p_stage):
