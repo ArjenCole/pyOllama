@@ -1,3 +1,4 @@
+import copy
 import time
 
 from flask import Flask, render_template_string, request, jsonify, render_template
@@ -33,6 +34,7 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
 ROW_RANGE = 10
 COL_RANGE = 20
 KEYWORDS_NUM = 8
+THRESHOLD = 0.6  # 相似度阈值
 
 
 @app.route('/dropzone')
@@ -166,21 +168,24 @@ def _worksheet_similarity(p_sheet):
     rt_max_similarity = 0
     # print('p_sheet.shape', p_sheet.shape)
     for fe_row in range(0, min(ROW_RANGE, p_sheet.shape[0])):
-        _f4_similarity_array = list(range(COL_RANGE+KEYWORDS_NUM))
-        _row_similarity = 0
+        _f4_similarity_array = [0.00 for _ in range(COL_RANGE+KEYWORDS_NUM)]
+        _row_similarity = 0.00
         for fe_col in range(0, min(COL_RANGE+KEYWORDS_NUM, p_sheet.shape[1])):
             # print("行列", _col_name(fe_col), fe_row+1)
             _str = str(p_sheet.iloc[fe_row][fe_col])
             if _str == 'nan':
-                _f4_similarity = 0
+                _f4_similarity_array[fe_col] = 0.00
             else:
-                # print(_str)
-                _f4_similarity = _match_f8(_str)
-            _f4_similarity_array[fe_col] = _f4_similarity
+                _match = _match_f8(_str)
+                if _match <= THRESHOLD:
+                    _f4_similarity_array[fe_col] = 0.00
+                else:
+                    _f4_similarity_array[fe_col] = _match_f8(_str)
 
             _row_similarity += _f4_similarity_array[fe_col]
             if fe_col >= KEYWORDS_NUM:
                 _row_similarity -= _f4_similarity_array[fe_col-KEYWORDS_NUM]
+            # print('row', fe_row,'col',fe_col, round(_row_similarity, 3), '|', _f4_similarity_array)
             '''
             _row_similarity = 0
             if fe_col >= KEYWORDS_NUM:
@@ -191,6 +196,11 @@ def _worksheet_similarity(p_sheet):
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
                 rt_match_col = fe_col - KEYWORDS_NUM + 1
+                if rt_match_col < 0:  # 如果相似度求和最大列出现在8列之前，识别的起始列定义为从第0列开始第一个相似度大于0的列
+                    for fe_i in range(fe_col):
+                        if _f4_similarity_array[fe_i] > 0:
+                            rt_match_col = fe_i
+                            break
     return rt_match_row, rt_match_col, rt_max_similarity
 
 
@@ -267,14 +277,18 @@ def _parse_no(p_dict):
 
 
 def _parse_low_sim(p_dict):
-    rt_dict = p_dict.copy()
-    # print(p_dict)
+    rt_dict = copy.deepcopy(p_dict)
     for fe_key in p_dict.keys():
         if type(p_dict[fe_key]) is not str:
+            rt_dict[fe_key].clear()
             for fe_value in p_dict[fe_key]:
-                if float(fe_value['sim']) < 0.6:
-                    rt_dict[fe_key].remove(fe_value)
+                if float(fe_value['sim']) > THRESHOLD:
+                    rt_dict[fe_key].append(copy.deepcopy(fe_value))
+            if len(rt_dict[fe_key]) == 0:
+                del rt_dict[fe_key]
     return rt_dict
+
+
 # 更新前端进度条
 def _stage_update(p_socketio, p_percent, p_stage):
     p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
