@@ -226,16 +226,18 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
     for fe_i in range(p_max_col):
         if p_col + fe_i >= p_work_book[p_sheet_name].shape[1]:
             continue
-        if str(p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]) == 'nan':
+        _cell_word = str(p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i])
+        _cell_word1 = str(p_work_book[p_sheet_name].iloc[p_row + 1][p_col + fe_i])
+        if str(_cell_word) == 'nan' or '%' in _cell_word:
             continue
         _max_similarity = 0.00
         _match_target_word = None
         for fe_target_word in p_target_words:
-            _raw_word = p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]
+            _raw_word = _cell_word
             _matched_word, _similarity_score, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
             # print(_raw_word, _matched_word, _similarity_score)
             # 加上识别单元格下方单元格一起识别，以防两个文字被拆分到两个单元格里
-            _raw_word = str(_raw_word) + str(p_work_book[p_sheet_name].iloc[p_row + 1][p_col + fe_i])
+            _raw_word = _cell_word + _cell_word1
             _matched_word1, _similarity_score1, = pyFCM.fuzzy_match(_raw_word, MAPPING_TABLE[fe_target_word])
             # print(_raw_word, _matched_word, _similarity_score)
             _score = max(_similarity_score[0], _similarity_score1[0])
