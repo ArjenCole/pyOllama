@@ -28,7 +28,7 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
                  '数量': ['数量'],
                  '单位价值元': ['单位价值元', '单位指标元'],
                  '序号': ['序号'], '项': ['项'], '目': ['目'], '节': ['节'], '细目': ['细目'],
-                 '工程或费用名称': ['工程或费用名称'],
+                 '工程或费用名称': ['工程或费用名称', '工程及费用名称'],
                  }
 # 表头识别时，《建筑工程》单元格的检索范围
 ROW_RANGE = 10
@@ -158,7 +158,9 @@ def _parse_workbook(p_dir, p_socketio):
     rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row, 0), max(_match_sheet_col - 6, 0),
                     TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
+    # print(rt_dict)
     rt_dict = _parse_no(rt_dict)
+    # print(rt_dict)
     rt_dict = _parse_low_sim(rt_dict)
     print(rt_dict)
     return rt_dict
