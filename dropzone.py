@@ -222,6 +222,8 @@ def _match_f8(p_raw_word):
 def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
     rt_dict = {}
     for fe_i in range(p_max_col):
+        if p_col + fe_i >= p_work_book[p_sheet_name].shape[1]:
+            continue
         if str(p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i]) == 'nan':
             continue
         _max_similarity = 0.00
