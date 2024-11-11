@@ -228,7 +228,7 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
             continue
         _cell_word = str(p_work_book[p_sheet_name].iloc[p_row][p_col + fe_i])
         _cell_word1 = str(p_work_book[p_sheet_name].iloc[p_row + 1][p_col + fe_i])
-        if str(_cell_word) == 'nan' or '%' in _cell_word:
+        if str(_cell_word) == 'nan' or '%' in _cell_word or '百分比' in _cell_word or '比例' in _cell_word:
             continue
         _max_similarity = 0.00
         _match_target_word = None
