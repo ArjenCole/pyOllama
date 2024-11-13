@@ -19,6 +19,8 @@ CORS(app)  # 允许跨源请求
 
 UPLOADS_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/uploads'  # 上传文件存储地址
 OUTPUT_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/output'  # 输出文件存储地址
+STANDARD_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/templates/standard1.xlsx'  # 标准文件存储地址
+
 TARGET_WORDS_F4 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
 TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
 TARGET_WORDS_NO = ['序号', '项', '目', '节', '细目', '工程或费用名称']
@@ -69,10 +71,9 @@ def dropzone_upload(p_socketio):
             return
         else:
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
-        pyFormat.table_format(_dir_dict['DIR'], os.path.join(OUTPUT_DIR, 'standard1.xlsx'), _dict)
-        _stage_update(p_socketio, 100, '文件标准化成功！\r\n' + _beautify(_dict))
-            # print(_beautify(_dict))
 
+        pyFormat.table_format(_file.filename, _dict)
+        _stage_update(p_socketio, 100, '文件标准化成功！\r\n' + _beautify(_dict))
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
 

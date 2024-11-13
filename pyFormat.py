@@ -1,6 +1,10 @@
+from datetime import datetime
+
 import openpyxl
 from openpyxl.utils import get_column_letter
 from copy import copy
+
+import dropzone
 
 
 def locate_sheet(workbook, sheet_name):
@@ -30,7 +34,8 @@ def find_first_and_last_row(sheet, start_col):
         cell = sheet.cell(row=row, column=start_col)
         if cell.value is not None and start_row is None:
             start_row = row
-        if cell.border and (cell.border.left.style or cell.border.right.style or cell.border.top.style or cell.border.bottom.style):
+        if cell.border and (
+                cell.border.left.style or cell.border.right.style or cell.border.top.style or cell.border.bottom.style):
             last_row = row
     return start_row, last_row
 
@@ -85,32 +90,36 @@ def process_field(sheet_from, sheet_to, t_field_data, p_field_data):
         copy_column(sheet_from, sheet_to, t_data['col'] + 1, p_data['col'] + 1, start_row, end_row)
 
 
-def table_format(test_file, standard_file, t_dict):
-    p_dict = {'表单名称': '总表', '建筑工程': [{'row': 3, 'col': 2, 'sim': '1.0'}],
-              '安装工程': [{'row': 3, 'col': 3, 'sim': '1.0'}],
-              '设备及工器具购置费': [{'row': 3, 'col': 4, 'sim': '1.0'}],
-              '其他费用': [{'row': 3, 'col': 5, 'sim': '1.0'}], '合计': [{'row': 3, 'col': 6, 'sim': '1.0'}],
-              '单位': [{'row': 3, 'col': 7, 'sim': '1.0'}], '数量': [{'row': 3, 'col': 8, 'sim': '1.0'}],
-              '单位价值元': [{'row': 3, 'col': 9, 'sim': '1.0'}], '序号': [{'row': 2, 'col': 0, 'sim': '1.0'}],
-              '工程或费用名称': [{'row': 2, 'col': 1, 'sim': '1.0'}], '备注': [{'row': 10, 'col': 3, 'sim': '1.0'}]}
+def table_format(p_filename, p_dict):
+    standard_dict = {'表单名称': '总表', '建筑工程': [{'row': 3, 'col': 2, 'sim': '1.0'}],
+                     '安装工程': [{'row': 3, 'col': 3, 'sim': '1.0'}],
+                     '设备及工器具购置费': [{'row': 3, 'col': 4, 'sim': '1.0'}],
+                     '其他费用': [{'row': 3, 'col': 5, 'sim': '1.0'}], '合计': [{'row': 3, 'col': 6, 'sim': '1.0'}],
+                     '单位': [{'row': 3, 'col': 7, 'sim': '1.0'}], '数量': [{'row': 3, 'col': 8, 'sim': '1.0'}],
+                     '单位价值元': [{'row': 3, 'col': 9, 'sim': '1.0'}], '序号': [{'row': 2, 'col': 0, 'sim': '1.0'}],
+                     '工程或费用名称': [{'row': 2, 'col': 1, 'sim': '1.0'}],
+                     '备注': [{'row': 10, 'col': 3, 'sim': '1.0'}]}
     # 加载工作簿
-    print(test_file, standard_file)
-    test_wb = openpyxl.load_workbook(test_file)
-    standard_wb = openpyxl.load_workbook(standard_file)
+    test_wb = openpyxl.load_workbook(dropzone.UPLOADS_DIR + '\\' + p_filename)
+    standard_wb = openpyxl.load_workbook(dropzone.STANDARD_DIR)
 
     # 定位到表单名称对应的工作表
-    test_sheet = locate_sheet(test_wb, t_dict['表单名称'])
-    standard_sheet = locate_sheet(standard_wb, p_dict['表单名称'])
+    test_sheet = locate_sheet(test_wb, p_dict['表单名称'])
+    standard_sheet = locate_sheet(standard_wb, standard_dict['表单名称'])
 
     # 将工作表数值化
     sheet_to_numeric(test_sheet)
 
     # 动态处理字典中的所有字段
-    for field in t_dict:
-        if field != '表单名称' and field in p_dict:
-            process_field(test_sheet, standard_sheet, t_dict[field], p_dict[field])
+    for field in p_dict:
+        if field != '表单名称' and field in standard_dict:
+            process_field(test_sheet, standard_sheet, p_dict[field], standard_dict[field])
 
     # 保存到新的标准文件
-    standard_wb.save("standard_result.xlsx")
-
-
+    # 获取当前时间
+    now = datetime.now()
+    # 格式化时间为YYMMDDHHMMSS格式
+    _formatted_time = now.strftime("%y%m%d%H%M%S")
+    _output_dir = dropzone.OUTPUT_DIR + '\\' + _formatted_time + ' ' + p_filename
+    print(_output_dir)
+    standard_wb.save(_output_dir)
