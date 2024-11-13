@@ -22,7 +22,7 @@ OUTPUT_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/output'  # 输出文件存储地
 STANDARD_DIR = 'F:/GithubRepos/ArjenCole/pyOllama/templates/standard1.xlsx'  # 标准文件存储地址
 
 TARGET_WORDS_F4 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用']
-TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元']
+TARGET_WORDS_F8 = ['建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量', '单位价值元', '备注']
 TARGET_WORDS_NO = ['序号', '项', '目', '节', '细目', '工程或费用名称']
 MAPPING_TABLE = {'建筑工程': ['建筑工程'],
                  '安装工程': ['安装工程', '管件材料及设备安装工程'],
@@ -32,6 +32,7 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
                  '单位': ['单位'],
                  '数量': ['数量'],
                  '单位价值元': ['单位价值元', '单位指标元'],
+                 '备注': ['备注'],
                  '序号': ['序号'], '项': ['项'], '目': ['目'], '节': ['节'], '细目': ['细目'],
                  '工程或费用名称': ['工程或费用名称', '工程及费用名称'],
                  }
@@ -159,6 +160,9 @@ def _parse_workbook(p_dir, p_socketio):
         _sort_words(rt_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col,
                     TARGET_WORDS_F8))
     rt_dict.update(
+        _sort_words(rt_work_book, _match_sheet_name, _match_sheet_row-1, _match_sheet_col,
+                    TARGET_WORDS_F8))
+    rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
                     TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     rt_dict.update(
@@ -227,7 +231,7 @@ def _match_f8(p_raw_word):
 
 
 # 将匹配F8的单元格与F8关键字进行匹配对应
-def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=9):
+def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=10):
     rt_dict = {}
     for fe_i in range(p_max_col):
         if p_col + fe_i >= p_work_book[p_sheet_name].shape[1]:
