@@ -2,12 +2,14 @@ import openpyxl
 from openpyxl.utils import get_column_letter
 from copy import copy
 
+
 def locate_sheet(workbook, sheet_name):
     """定位到指定工作簿中的工作表"""
     if sheet_name in workbook.sheetnames:
         return workbook[sheet_name]
     else:
         raise ValueError(f"Worksheet '{sheet_name}' not found in the workbook")
+
 
 def sheet_to_numeric(sheet):
     """将工作表中的所有数据转换为数值格式"""
@@ -18,6 +20,7 @@ def sheet_to_numeric(sheet):
                     cell.value = float(cell.value)
             except ValueError:
                 continue
+
 
 def find_first_and_last_row(sheet, start_col):
     """找到建筑工程或其他相应列的首个非空单元格和最后一个带边框单元格的行号"""
@@ -30,6 +33,7 @@ def find_first_and_last_row(sheet, start_col):
         if cell.border and (cell.border.left.style or cell.border.right.style or cell.border.top.style or cell.border.bottom.style):
             last_row = row
     return start_row, last_row
+
 
 def copy_column(sheet_from, sheet_to, from_col, to_col, start_row, end_row):
     """复制整列数据从源工作表到目标工作表，保留原格式和单元格边框"""
@@ -45,6 +49,7 @@ def copy_column(sheet_from, sheet_to, from_col, to_col, start_row, end_row):
         to_cell.protection = copy(from_cell.protection)
         to_cell.alignment = copy(from_cell.alignment)
         to_cell.border = copy(from_cell.border)
+
 
 def process_field(sheet_from, sheet_to, t_field_data, p_field_data):
     """处理单个字段的复制操作"""
@@ -89,7 +94,7 @@ def table_format(test_file, standard_file, t_dict):
               '单位价值元': [{'row': 3, 'col': 9, 'sim': '1.0'}], '序号': [{'row': 2, 'col': 0, 'sim': '1.0'}],
               '工程或费用名称': [{'row': 2, 'col': 1, 'sim': '1.0'}], '备注': [{'row': 10, 'col': 3, 'sim': '1.0'}]}
     # 加载工作簿
-    print(test_file,standard_file)
+    print(test_file, standard_file)
     test_wb = openpyxl.load_workbook(test_file)
     standard_wb = openpyxl.load_workbook(standard_file)
 
