@@ -160,14 +160,14 @@ def _parse_workbook(p_dir, p_socketio):
         _sort_words(rt_work_book, _match_sheet_name, _match_sheet_row, _match_sheet_col,
                     TARGET_WORDS_F8))
     rt_dict.update(
-        _sort_words(rt_work_book, _match_sheet_name, _match_sheet_row-1, _match_sheet_col,
-                    TARGET_WORDS_F8))
+        _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), _match_sheet_col,
+                    TARGET_WORDS_F8, rt_dict))
     rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row - 1, 0), max(_match_sheet_col - 6, 0),
-                    TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
+                    TARGET_WORDS_NO, rt_dict, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     rt_dict.update(
         _sort_words(rt_work_book, _match_sheet_name, max(_match_sheet_row, 0), max(_match_sheet_col - 6, 0),
-                    TARGET_WORDS_NO, _match_sheet_col - max(_match_sheet_col - 6, 0)))
+                    TARGET_WORDS_NO, rt_dict, _match_sheet_col - max(_match_sheet_col - 6, 0)))
     # print(rt_dict)
     rt_dict = _parse_no(rt_dict)
     # print(rt_dict)
@@ -231,8 +231,11 @@ def _match_f8(p_raw_word):
 
 
 # 将匹配F8的单元格与F8关键字进行匹配对应
-def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_col=10):
-    rt_dict = {}
+def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_dict=None, p_max_col=10):
+    if p_dict is None:
+        rt_dict = {}
+    else:
+        rt_dict = copy.deepcopy(p_dict)
     for fe_i in range(p_max_col):
         if p_col + fe_i >= p_work_book[p_sheet_name].shape[1]:
             continue
@@ -254,12 +257,19 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_max_c
             if _score >= _max_similarity:
                 _max_similarity = _score
                 _match_target_word = fe_target_word
+        # print('cell', _cell_word, _max_similarity, _match_target_word)
         if _match_target_word not in rt_dict:
             rt_dict[_match_target_word] = [{'row': p_row, 'col': p_col + fe_i,
                                            'sim': str(round(_max_similarity, 3))}]
         else:
-            rt_dict[_match_target_word].append({'row': p_row, 'col': p_col + fe_i,
-                                                'sim': str(round(_max_similarity, 3))})
+            for fe_value in rt_dict[_match_target_word]:
+                if fe_value['col'] == p_col + fe_i:
+                    if _max_similarity > float(fe_value['sim']):
+                        fe_value['row'] = p_row
+                        fe_value['sim'] = str(round(_max_similarity, 3))
+                else:
+                    rt_dict[_match_target_word].append({'row': p_row, 'col': p_col + fe_i,
+                                                        'sim': str(round(_max_similarity, 3))})
 
     # print('=', rt_dict)
     return rt_dict
