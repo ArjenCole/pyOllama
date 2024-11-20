@@ -73,7 +73,7 @@ def dropzone_upload(p_socketio):
         else:
             _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
 
-        pyFormat.table_format(_file.filename, _dict)
+        pyFormat.table_format(_dir_dict['DIR'], _dict)
         _stage_update(p_socketio, 100, '文件标准化成功！\r\n' + _beautify(_dict))
     else:
         _stage_update(p_socketio, 100, '文件上传失败！')
@@ -115,6 +115,10 @@ def _file_save(p_file):
         _file_path = os.path.join(UPLOADS_DIR, _file_name)
         p_file.save(_file_path)
         print(_file_path)
+        _, _file_extension = os.path.splitext(_file_path)
+        if _file_extension.lower() == '.xls':
+            _file_path = pyExcel.trans_to_xlsx(_file_path)
+            print(_file_path)
         return {'DIR': _file_path}
 
 
@@ -224,7 +228,7 @@ def _match_f8(p_raw_word):
     _matched_word, rt_similarity_score, = pyFCM.fuzzy_match(p_raw_word, _target_words)
     if rt_similarity_score is not None:
         if p_raw_word in TARGET_WORDS_F4:
-            rt_similarity_score[0] = rt_similarity_score[0] * 2
+            rt_similarity_score[0] = rt_similarity_score[0] * 3
         return rt_similarity_score[0]
     else:
         return 0

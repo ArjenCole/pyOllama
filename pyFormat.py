@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import openpyxl
@@ -90,7 +91,7 @@ def process_field(sheet_from, sheet_to, t_field_data, p_field_data):
         copy_column(sheet_from, sheet_to, t_data['col'] + 1, p_data['col'] + 1, start_row, end_row)
 
 
-def table_format(p_filename, p_dict):
+def table_format(p_file_path, p_dict):
     standard_dict = {'表单名称': '总表', '建筑工程': [{'row': 3, 'col': 2, 'sim': '1.0'}],
                      '安装工程': [{'row': 3, 'col': 3, 'sim': '1.0'}],
                      '设备及工器具购置费': [{'row': 3, 'col': 4, 'sim': '1.0'}],
@@ -100,7 +101,7 @@ def table_format(p_filename, p_dict):
                      '工程或费用名称': [{'row': 2, 'col': 1, 'sim': '1.0'}],
                      '备注': [{'row': 10, 'col': 3, 'sim': '1.0'}]}
     # 加载工作簿
-    test_wb = openpyxl.load_workbook(dropzone.UPLOADS_DIR + '\\' + p_filename)
+    test_wb = openpyxl.load_workbook(p_file_path)
     standard_wb = openpyxl.load_workbook(dropzone.STANDARD_DIR)
 
     # 定位到表单名称对应的工作表
@@ -120,6 +121,8 @@ def table_format(p_filename, p_dict):
     now = datetime.now()
     # 格式化时间为YYMMDDHHMMSS格式
     _formatted_time = now.strftime("%y%m%d%H%M%S")
-    _output_dir = dropzone.OUTPUT_DIR + '\\' + _formatted_time + ' ' + p_filename
+    _file_name = os.path.basename(p_file_path)
+    print(_file_name)
+    _output_dir = dropzone.OUTPUT_DIR + '\\' + _formatted_time + ' ' + _file_name
     print(_output_dir)
     standard_wb.save(_output_dir)
