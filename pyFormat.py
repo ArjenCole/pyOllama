@@ -98,7 +98,7 @@ def table_format(p_file_path, p_dict):
                      '单位': [{'row': 3, 'col': 7, 'sim': '1.0'}], '数量': [{'row': 3, 'col': 8, 'sim': '1.0'}],
                      '单位价值元': [{'row': 3, 'col': 9, 'sim': '1.0'}], '序号': [{'row': 2, 'col': 0, 'sim': '1.0'}],
                      '工程或费用名称': [{'row': 2, 'col': 1, 'sim': '1.0'}],
-                     '备注': [{'row': 10, 'col': 3, 'sim': '1.0'}]}
+                     '备注': [{'row': 2, 'col': 10, 'sim': '1.0'}]}
     # 加载工作簿
     test_wb = openpyxl.load_workbook(p_file_path)
     standard_wb = openpyxl.load_workbook(dropzone.STANDARD_DIR)
