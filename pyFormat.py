@@ -1,11 +1,10 @@
 import os
 from datetime import datetime
+import dropzone
 
 import openpyxl
 from openpyxl.utils import get_column_letter
 from copy import copy
-
-import dropzone
 
 
 def locate_sheet(workbook, sheet_name):
