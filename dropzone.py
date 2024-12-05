@@ -40,7 +40,7 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
 ROW_RANGE = 10
 COL_RANGE = 20
 KEYWORDS_NUM = 8
-THRESHOLD = 0.5  # 相似度阈值
+THRESHOLD = 0.55  # 相似度阈值
 
 
 @app.route('/dropzone')
@@ -211,6 +211,7 @@ def _worksheet_similarity(p_sheet):
                     _row_similarity += _f4_similarity_array[fe_col - fe_i]
             '''
             if _row_similarity >= rt_max_similarity:
+                # print('?', fe_col, _col_name(fe_col), fe_row+1)
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
                 rt_match_col = fe_col - KEYWORDS_NUM + 1
@@ -219,6 +220,7 @@ def _worksheet_similarity(p_sheet):
                         if _f4_similarity_array[fe_i] > 0:
                             rt_match_col = fe_i
                             break
+    # print('return', _col_name(rt_match_col), rt_match_row+1, rt_max_similarity)
     return rt_match_row, rt_match_col, rt_max_similarity
 
 
@@ -236,6 +238,7 @@ def _match_f8(p_raw_word):
 
 # 将匹配F8的单元格与F8关键字进行匹配对应
 def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_dict=None, p_max_col=10):
+    # print('sort', p_col, p_max_col)
     if p_dict is None:
         rt_dict = {}
     else:
