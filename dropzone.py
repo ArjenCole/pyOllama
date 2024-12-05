@@ -152,7 +152,7 @@ def _parse_workbook(p_dir, p_socketio):
         _work_sheet = rt_work_book[fe_sheet_name]
 
         _sheet_match_row, _sheet_match_col, _sheet_similarity = _worksheet_similarity(_work_sheet)
-        # print('max', _sheet_match_row,_sheet_match_col,_sheet_similarity)
+        # print('max', _sheet_match_row, _sheet_match_col, _sheet_similarity)
         if _sheet_similarity > _max_similarity:
             _max_similarity = _sheet_similarity
             _match_sheet_name = fe_sheet_name
@@ -203,14 +203,14 @@ def _worksheet_similarity(p_sheet):
             _row_similarity += _f4_similarity_array[fe_col]
             if fe_col >= KEYWORDS_NUM:
                 _row_similarity -= _f4_similarity_array[fe_col-KEYWORDS_NUM]
-            # print('row', fe_row,'col',fe_col, round(_row_similarity, 3), '|', _f4_similarity_array)
+            # print(_col_name(fe_col), fe_row+1, round(_row_similarity, 3), '|', _f4_similarity_array)
             '''
             _row_similarity = 0
             if fe_col >= KEYWORDS_NUM:
                 for fe_i in range(KEYWORDS_NUM):
                     _row_similarity += _f4_similarity_array[fe_col - fe_i]
             '''
-            if _row_similarity > rt_max_similarity:
+            if _row_similarity >= rt_max_similarity:
                 rt_max_similarity = _row_similarity
                 rt_match_row = fe_row
                 rt_match_col = fe_col - KEYWORDS_NUM + 1
