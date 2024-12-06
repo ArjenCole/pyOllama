@@ -32,9 +32,10 @@ def _send_to_ai(p_prompt):
     print(p_prompt)
     # 发送请求到 AI 模型服务
     try:
-        _response = requests.post("http://127.0.0.1:11434/api/generate", json=_data)
+        _response = requests.post("http://127.16.104.58:11434/api/generate", json=_data)
         _response.raise_for_status()  # 如果响应状态码不是 200，将抛出异常
     except requests.exceptions.RequestException as e:
+        print(e)
         return jsonify({'error': 'An error occurred while communicating with the AI model service.'}), 500
 
     # 检查请求是否成功
