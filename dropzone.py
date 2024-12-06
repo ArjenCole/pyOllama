@@ -40,7 +40,7 @@ MAPPING_TABLE = {'建筑工程': ['建筑工程'],
 ROW_RANGE = 10
 COL_RANGE = 20
 KEYWORDS_NUM = 8
-THRESHOLD = 0.55  # 相似度阈值
+THRESHOLD = 0.5  # 相似度阈值
 
 
 @app.route('/dropzone')
