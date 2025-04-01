@@ -27,11 +27,13 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    transition: all 0.3s ease;
 }
 
 .dropzone.dragover {
-    border-color: #000;
-    color: #000;
+    border-color: #4CAF50;
+    background-color: #E8F5E9;
+    color: #4CAF50;
 }
 
 .hidden {

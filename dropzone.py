@@ -48,35 +48,29 @@ def dropzone():
     return render_template('dropzone.html')
 
 
-def dropzone_upload(p_socketio):
+def dropzone_upload(p_socketio, p_client_sessions):
     if 'file0' not in request.files:
         return jsonify({'error': '没有文件部分'})
-    # file = request.files.get('file')
     _file = request.files['file0']
-    # print('filename', _file.filename)
     _dir_dict = _file_save(_file)
 
+    # 从请求头中获取会话ID
+    session_id = request.headers.get('X-Session-ID')
+
     if 'DIR' in _dir_dict.keys():
-        _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……')
-        # 调试的时候用这段
-        '''
-        _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
-        _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
-        _stage_update(p_socketio, 100, '文件识别成功！\n\r' + str(_dict))
-        '''
-        # 演示的时候用这段
+        _stage_update(p_socketio, 10, '文件上传成功！开始解析工作簿……', session_id)
         try:
-            _dict = _parse_workbook(_dir_dict['DIR'], p_socketio)
+            _dict = _parse_workbook(_dir_dict['DIR'], p_socketio, session_id)
         except Exception as e:
-            _stage_update(p_socketio, 100, f'文件识别异常！发生错误：{e}')
+            _stage_update(p_socketio, 100, f'文件识别异常！发生错误：{e}', session_id)
             return
         else:
-            _stage_update(p_socketio, 80, '文件解析成功！正在输出结果')
+            _stage_update(p_socketio, 80, '文件解析成功！正在输出结果', session_id)
 
         pyFormat.table_format(_dir_dict['DIR'], _dict)
-        _stage_update(p_socketio, 100, '文件标准化成功！\r\n' + _beautify(_dict))
+        _stage_update(p_socketio, 100, '文件标准化成功！\r\n' + _beautify(_dict), session_id)
     else:
-        _stage_update(p_socketio, 100, '文件上传失败！')
+        _stage_update(p_socketio, 100, '文件上传失败！', session_id)
 
     return _dir_dict
 
@@ -123,7 +117,7 @@ def _file_save(p_file):
 
 
 # 对于对工作簿进行处理
-def _parse_workbook(p_dir, p_socketio):
+def _parse_workbook(p_dir, p_socketio, p_session_id):
     isXLS = False
     try:
         rt_work_book = pyExcel.get_workbook(p_dir)  # 用pandas加载文件用于处理
@@ -144,7 +138,7 @@ def _parse_workbook(p_dir, p_socketio):
 
     for fe_sheet_name in rt_work_book.keys():
         _progress += _progress_step
-        _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name)
+        _stage_update(p_socketio, _progress, '正在处理表单：' + fe_sheet_name, p_session_id)
         print('正在处理表单：', fe_sheet_name)
         if not isXLS:
             if _work_book_openpyxl[fe_sheet_name].sheet_state == 'hidden':
@@ -282,7 +276,7 @@ def _sort_words(p_work_book, p_sheet_name, p_row, p_col, p_target_words, p_dict=
     return rt_dict
 
 
-# 判断序号模式是“项目节还是序号”
+# 判断序号模式是"项目节还是序号"
 def _parse_no(p_dict):
     rt_dict = p_dict.copy()
     _target_words = ['序号', '项', '目', '节', '细目']
@@ -327,8 +321,11 @@ def _parse_low_sim(p_dict):
 
 
 # 更新前端进度条
-def _stage_update(p_socketio, p_percent, p_stage):
-    p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
+def _stage_update(p_socketio, p_percent, p_stage, p_session_id=None):
+    if p_session_id:
+        p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage, 'sessionId': p_session_id})
+    else:
+        p_socketio.emit('progress', {'progress': p_percent, 'stage': p_stage})
     if p_percent < 100:
         time.sleep(0.1)
 
