@@ -13,25 +13,32 @@ body, html {
 
 .buttons-container {
     display: flex;
-    justify-content: space-around;
-    width: 80%;
-    max-width: 3600px; /* 限制按钮组的最大宽度 */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    width: 90%;
+    max-width: 1200px;
+    padding: 20px;
 }
 
 .button {
     display: inline-block;
-    padding: 180px; /* 进一步增大内边距 */
-    margin: 30px; /* 进一步增大外边距 */
+    padding: 30px 60px;
+    margin: 15px;
     text-decoration: none;
     color: #fff;
-    background-color: #5d5d5d; /* 低饱和度的灰色 */
+    background-color: #5d5d5d;
     border: none;
     border-radius: 4px;
-    font-size: 36px; /* 进一步增大字体大小 */
+    font-size: 24px;
     transition: background-color 0.3s ease;
     box-sizing: border-box;
-    width: calc((100% - 90px) / 3); /* 调整按钮宽度，减去更大的间距 */
-    height: 500px; /* 进一步增大高度 */
+    width: calc(50% - 60px); /* 每行两个按钮 */
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 .button:hover {
@@ -46,8 +53,8 @@ body, html {
     }
 
     .button {
-        width: 80%; /* 在小屏幕上按钮宽度为80% */
-        margin: 30px 0; /* 调整垂直间距 */
-        height: 200px; /* 在小屏幕上减小按钮高度以适应屏幕 */
+        width: 80%;
+        margin: 15px 0;
+        height: 150px;
     }
 }

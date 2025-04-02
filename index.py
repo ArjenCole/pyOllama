@@ -1,4 +1,5 @@
 import time
+import sys
 
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
@@ -46,6 +47,16 @@ def knowledge():
     # 知识库页面路由
     return render_template('knowledge.html')
 
+@app.route('/estimation')
+def estimation():
+    # 智能估算页面路由
+    return render_template('estimation.html')
+
+@app.route('/estimation/water')
+def estimation_water():
+    # 给排水厂站工程估算页面路由
+    return render_template('estimation_water.html')
+
 def _stage_update(p_percent, p_stage, session_id=None):
     if session_id:
         # 只向特定客户端发送进度更新
@@ -70,5 +81,9 @@ def handle_disconnect():
         del client_sessions[request.sid]
 
 if __name__ == '__main__':
-    # app.run(debug=True, host='0.0.0.0', port=8080)
-    socketio.run(app, debug=True, host='0.0.0.0', port=8080)
+    try:
+        socketio.run(app, debug=True, host='0.0.0.0', port=8080)
+    except KeyboardInterrupt:
+        print('正在关闭服务器...')
+        socketio.stop()
+        sys.exit(0)
