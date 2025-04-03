@@ -132,7 +132,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         # 创建一个新的Excel写入器
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
             # 复制模板的格式，不包含索引
-            template_df.columns = ['','','','','','','','','','','','']
+            template_df.columns = ['', '', '', '', '', '', '', '', '', '', '', '']
             template_df.to_excel(writer, sheet_name='Sheet1', index=False)
             
             # 获取工作簿和工作表对象
@@ -176,15 +176,37 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 cell.value = key
                 cell.border = thin_border
                 cell.alignment = Alignment(horizontal='left', vertical='center')
-                
-                # 添加3个空行
-                current_row += 4
+
+                current_row += 1
+                cell = worksheet.cell(row=current_row, column=name_col_idx)
+                cell.value = "土建"
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal='right', vertical='center')
+
+                current_row += 1
+                cell = worksheet.cell(row=current_row, column=name_col_idx)
+                cell.value = "管配件"
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal='right', vertical='center')
+
+                current_row += 1
+                cell = worksheet.cell(row=current_row, column=name_col_idx)
+                cell.value = "设备"
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal='right', vertical='center')
+
+                current_row += 1
             
             # 调整列宽
             for col in range(1, len(template_df.columns) + 1):
                 column_letter = get_column_letter(col)
-                worksheet.column_dimensions[column_letter].width = 15
-            
+                worksheet.column_dimensions[column_letter].width = 11
+            worksheet.column_dimensions[get_column_letter(1)].width = 5
+            worksheet.column_dimensions[get_column_letter(2)].width = 5
+            worksheet.column_dimensions[get_column_letter(3)].width = 35
+            worksheet.column_dimensions[get_column_letter(9)].width = 5
+            worksheet.column_dimensions[get_column_letter(12)].width = 35
+
             # 设置行高
             for row in range(1, current_row):
                 worksheet.row_dimensions[row].height = 20
