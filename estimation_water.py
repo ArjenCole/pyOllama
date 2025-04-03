@@ -166,7 +166,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             name_col_idx = 3
 
             # 从第2行开始写入数据（第1行是标题）
-            current_row = 7
+            current_row = 8
 
             # 写入每个key，并在key之间添加3个空行
             for key in equipment_dict.keys():
@@ -220,7 +220,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
 
             # 第4-6行单元格全部居中
-            for row in range(2, 6):
+            for row in range(2, 7 + 1):
                 if row == 3:
                     continue
                 for cell in worksheet[row]:
