@@ -104,7 +104,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
 
 def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_filename: str) -> str:
     """
-    将设备材料字典数据写入新的Excel文件
+    将设备材料字典数据写入新的Excel文件，使用标准模板格式
     
     Args:
         equipment_dict: 设备材料字典数据
@@ -124,27 +124,69 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         new_filename = f"{timestamp}_{safe_original_filename}"
         output_path = os.path.join(OUTPUT_FOLDER, new_filename)
         
-        # 创建一个Excel写入器
+        # 读取标准模板
+        template_path = os.path.join('templates', 'standard.xlsx')
+        template_wb = pd.ExcelFile(template_path)
+        template_df = pd.read_excel(template_wb, sheet_name='Sheet1')
+        
+        # 创建一个新的Excel写入器
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-            # 为每个单体创建一个工作表
-            for unit, equipment_list in equipment_dict.items():
-                # 准备数据
-                data = []
-                for i, eq in enumerate(equipment_list, 1):
-                    data.append({
-                        '序号': i,
-                        '所属单体': unit,
-                        '名称': eq.name,
-                        '规格': eq.specification,
-                        '材料': eq.material,
-                        '单位': eq.unit,
-                        '数量': eq.quantity,
-                        '备注': eq.remarks
-                    })
+            # 复制模板的格式
+            template_df.to_excel(writer, sheet_name='Sheet1', index=False)
+            
+            # 获取工作簿和工作表对象
+            workbook = writer.book
+            worksheet = writer.sheets['Sheet1']
+            
+            # 从模板中复制样式
+            from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
+            from openpyxl.utils import get_column_letter
+            
+            # 设置边框样式
+            thin_border = Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+            
+            # 设置标题行样式
+            header_font = Font(bold=True)
+            header_fill = PatternFill(start_color='CCCCCC', end_color='CCCCCC', fill_type='solid')
+            
+            # 应用标题行样式
+            for col in range(1, len(template_df.columns) + 1):
+                cell = worksheet.cell(row=1, column=col)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # 找到"工程或费用名称"列的索引
+            name_col_idx = 3
+
+            # 从第2行开始写入数据（第1行是标题）
+            current_row = 7
+            
+            # 写入每个key，并在key之间添加3个空行
+            for key in equipment_dict.keys():
+                # 写入key
+                cell = worksheet.cell(row=current_row, column=name_col_idx)
+                cell.value = key
+                cell.border = thin_border
+                cell.alignment = Alignment(horizontal='left', vertical='center')
                 
-                # 创建DataFrame并写入Excel
-                df = pd.DataFrame(data)
-                df.to_excel(writer, sheet_name=unit, index=False)
+                # 添加3个空行
+                current_row += 4
+            
+            # 调整列宽
+            for col in range(1, len(template_df.columns) + 1):
+                column_letter = get_column_letter(col)
+                worksheet.column_dimensions[column_letter].width = 15
+            
+            # 设置行高
+            for row in range(1, current_row):
+                worksheet.row_dimensions[row].height = 20
         
         return output_path
         
