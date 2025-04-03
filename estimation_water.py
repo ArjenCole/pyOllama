@@ -4,8 +4,10 @@ import pandas as pd
 from dataclasses import dataclass
 from typing import List, Dict
 from flask import jsonify, request, render_template
+from openpyxl.styles import Alignment
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
+from openpyxl.utils import get_column_letter
 
 # 配置上传文件存储路径
 UPLOAD_FOLDER = 'uploads/estimation_water'
@@ -60,8 +62,8 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
         以所属单体为key，设备材料列表为value的字典
     """
     try:
-        # 读取Excel文件的所有工作表
-        excel_file = pd.ExcelFile(file_path)
+        # 使用openpyxl引擎读取Excel文件
+        excel_file = pd.ExcelFile(file_path, engine='openpyxl')
         
         # 查找设备材料表
         # 假设表头包含这些字段
@@ -69,7 +71,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
         
         # 遍历所有工作表
         for sheet_name in excel_file.sheet_names:
-            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name)
+            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl')
             if all(col in df_sheet.columns for col in required_columns):
                 # 找到目标表格
                 result_dict = {}
@@ -126,108 +128,98 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         
         # 读取标准模板
         template_path = os.path.join('templates', 'standard.xlsx')
-        template_wb = pd.ExcelFile(template_path)
-        template_df = pd.read_excel(template_wb, sheet_name='Sheet1', index_col=None)
-
+        
+        # 使用openpyxl直接读取模板文件以保留格式
+        from openpyxl import load_workbook
+        template_wb = load_workbook(template_path)
+        template_ws = template_wb['Sheet1']
+        
+        # 创建一个空的DataFrame作为初始工作表
+        df = pd.DataFrame()
+        
         # 创建一个新的Excel写入器
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-            # 复制模板的格式，不包含索引
-            template_df.columns = ['', '', '', '', '', '', '', '', '', '', '', '']
-            template_df.to_excel(writer, sheet_name='Sheet1', index=False)
+            # 先写入空的DataFrame以创建工作表
+            df.to_excel(writer, sheet_name='Sheet1', index=False)
             
             # 获取工作簿和工作表对象
             workbook = writer.book
             worksheet = writer.sheets['Sheet1']
             
-            # 从模板中复制样式
-            from openpyxl.styles import PatternFill, Border, Side, Alignment, Font
-            from openpyxl.utils import get_column_letter
+            # 复制模板的前7行格式
+            for row in range(1, 8):  # 复制前7行
+                for col in range(1, len(template_ws[1]) + 1):
+                    # 获取模板单元格
+                    template_cell = template_ws.cell(row=row, column=col)
+                    # 获取目标单元格
+                    target_cell = worksheet.cell(row=row, column=col)
+                    
+                    # 复制单元格值
+                    target_cell.value = template_cell.value
+                    
+                    # 复制单元格格式
+                    if template_cell.has_style:
+                        # 复制字体
+                        target_cell.font = template_cell.font.copy()
+                        # 复制边框
+                        target_cell.border = template_cell.border.copy()
+                        # 复制填充
+                        target_cell.fill = template_cell.fill.copy()
+                        # 复制数字格式
+                        target_cell.number_format = template_cell.number_format
+                        # 复制保护
+                        target_cell.protection = template_cell.protection.copy()
+                        # 复制对齐方式
+                        target_cell.alignment = template_cell.alignment.copy()
             
-            # 设置边框样式
-            border_thin = Border(
-                left=Side(style='thin'),
-                right=Side(style='thin'),
-                top=Side(style='thin'),
-                bottom=Side(style='thin')
-            )
-            border_none = Border(
-                left=Side(style='none'),
-                right=Side(style='none'),
-                top=Side(style='none'),
-                bottom=Side(style='none')
-            )
-
-            # 应用标题行样式
-            for col in range(1, len(template_df.columns) + 1):
-                cell = worksheet.cell(row=1, column=col)
-                cell.border = border_none
+            # 复制合并单元格
+            for merged_range in template_ws.merged_cells.ranges:
+                if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
+                    worksheet.merge_cells(str(merged_range))
+            
+            # 复制列宽
+            for col in range(1, len(template_ws[1]) + 1):
+                column_letter = get_column_letter(col)
+                worksheet.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
+            
+            # 复制行高
+            for row in range(1, 8):  # 复制前7行的行高
+                worksheet.row_dimensions[row].height = template_ws.row_dimensions[row].height
             
             # 找到"工程或费用名称"列的索引
             name_col_idx = 3
 
-            # 从第2行开始写入数据（第1行是标题）
+            # 从第8行开始写入数据
             current_row = 8
-
+            
             # 写入每个key，并在key之间添加3个空行
             for key in equipment_dict.keys():
                 # 写入key
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = key
-                cell.border = border_thin
-                cell.alignment = Alignment(horizontal='left', vertical='center')
-
+                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()  # 使用模板的边框样式
+                cell.alignment = template_ws.cell(row=2, column=name_col_idx).alignment.copy()  # 使用模板的对齐方式
+                
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "土建"
-                cell.border = border_thin
+                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()
                 cell.alignment = Alignment(horizontal='right', vertical='center')
-
+                
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "管配件"
-                cell.border = border_thin
+                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()
                 cell.alignment = Alignment(horizontal='right', vertical='center')
-
+                
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "设备"
-                cell.border = border_thin
+                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()
                 cell.alignment = Alignment(horizontal='right', vertical='center')
-
+                
                 current_row += 1
-            
-            # 调整列宽
-            for col in range(1, len(template_df.columns) + 1):
-                column_letter = get_column_letter(col)
-                worksheet.column_dimensions[column_letter].width = 11
-            worksheet.column_dimensions[get_column_letter(1)].width = 5
-            worksheet.column_dimensions[get_column_letter(2)].width = 5
-            worksheet.column_dimensions[get_column_letter(3)].width = 35
-            worksheet.column_dimensions[get_column_letter(9)].width = 5
-            worksheet.column_dimensions[get_column_letter(12)].width = 35
-
-            # 设置行高
-            for row in range(1, current_row):
-                worksheet.row_dimensions[row].height = 20
-            worksheet.row_dimensions[5].height = 40
-
-            worksheet.merge_cells('B2:L2')
-            worksheet.merge_cells('B4:B5')
-            worksheet.merge_cells('C4:C5')
-            worksheet.merge_cells('D4:H4')
-            worksheet.merge_cells('I4:K4')
-            worksheet.merge_cells('L4:L5')
-
-
-            # 第4-6行单元格全部居中
-            for row in range(2, 7 + 1):
-                if row == 3:
-                    continue
-                for cell in worksheet[row]:
-                    cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-            worksheet['B3'].alignment = Alignment(horizontal='left', vertical='center')
-
-
+        
         return output_path
         
     except Exception as e:
