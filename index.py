@@ -1,18 +1,31 @@
 import time
 import sys
 
-from flask import Flask, render_template, request
-from flask_socketio import SocketIO
+from flask import Flask, render_template, request, jsonify
+from flask_socketio import SocketIO, emit
 import os
+from werkzeug.utils import secure_filename
+import shutil
 
 from dropzone import dropzone_upload  # 假设dropzone.py在同一包内，使用相对导入
 from ai import chat_ai
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your-secret-key'
 socketio = SocketIO(app)
 
 # 存储客户端会话ID的字典
 client_sessions = {}
+
+# 配置上传文件存储路径
+UPLOAD_FOLDER = 'uploads/estimation_water'
+ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+
+# 确保上传目录存在
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/')
 def index():
@@ -58,10 +71,52 @@ def estimation_water():
     return render_template('estimation_water.html')
 
 @app.route('/estimation/water/upload', methods=['POST'])
-def estimation_water_upload():
-    _stage_update(5, '开始上传文件')
-    _dir_dict = dropzone_upload(socketio, client_sessions, 'water_estimation')
-    return {'??': 100}
+def upload_water_file():
+    if 'file0' not in request.files:
+        return jsonify({'error': '没有文件被上传'}), 400
+    
+    file = request.files['file0']
+    if file.filename == '':
+        return jsonify({'error': '没有选择文件'}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({'error': '不支持的文件类型'}), 400
+    
+    # 获取会话ID
+    session_id = request.headers.get('X-Session-ID')
+    
+    try:
+        # 生成安全的文件名
+        filename = secure_filename(file.filename)
+        # 添加时间戳确保文件名唯一
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        new_filename = f"{timestamp}_{filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, new_filename)
+        
+        # 保存文件
+        file.save(file_path)
+        
+        # 发送进度更新
+        socketio.emit('progress', {
+            'progress': 100,
+            'stage': f'文件 {filename} 上传成功！\n保存为: {new_filename}',
+            'sessionId': session_id
+        })
+        
+        return jsonify({
+            'message': '文件上传成功',
+            'filename': new_filename,
+            'progress': 100
+        })
+        
+    except Exception as e:
+        # 发送错误信息
+        socketio.emit('progress', {
+            'progress': 0,
+            'stage': f'上传失败: {str(e)}',
+            'sessionId': session_id
+        })
+        return jsonify({'error': str(e)}), 500
 
 def _stage_update(p_percent, p_stage, session_id=None):
     if session_id:
@@ -73,18 +128,30 @@ def _stage_update(p_percent, p_stage, session_id=None):
     if p_percent < 100:
         time.sleep(1)
 
-@socketio.on('init')
-def handle_init(data):
-    # 处理客户端初始化，保存会话ID
-    session_id = data.get('sessionId')
-    if session_id:
-        client_sessions[request.sid] = session_id
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
 
 @socketio.on('disconnect')
 def handle_disconnect():
     # 客户端断开连接时清理会话ID
     if request.sid in client_sessions:
         del client_sessions[request.sid]
+    print('Client disconnected')
+
+@socketio.on('init')
+def handle_init(data):
+    # 处理客户端初始化，保存会话ID
+    session_id = data.get('sessionId')
+    if session_id:
+        client_sessions[request.sid] = session_id
+    print(f'Client initialized with session ID: {session_id}')
+
+@socketio.on('upload')
+def handle_upload(data):
+    filename = data.get('filename')
+    session_id = data.get('sessionId')
+    print(f'Upload started for file: {filename} (Session: {session_id})')
 
 if __name__ == '__main__':
     try:
