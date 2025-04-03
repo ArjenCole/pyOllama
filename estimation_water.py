@@ -9,10 +9,12 @@ from flask_socketio import SocketIO
 
 # 配置上传文件存储路径
 UPLOAD_FOLDER = 'uploads/estimation_water'
+OUTPUT_FOLDER = 'output/estimation_water'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 
-# 确保上传目录存在
+# 确保上传目录和输出目录存在
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 @dataclass
 class EquipmentMaterial:
@@ -27,6 +29,25 @@ class EquipmentMaterial:
 def allowed_file(filename):
     """检查文件类型是否允许"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def safe_filename(filename: str) -> str:
+    """
+    生成安全的文件名，但保留原始字符（包括中文）
+    
+    Args:
+        filename: 原始文件名
+        
+    Returns:
+        安全的文件名
+    """
+    # 获取文件扩展名
+    name, ext = os.path.splitext(filename)
+    
+    # 替换不安全的字符，但保留中文
+    safe_name = name.replace('/', '_').replace('\\', '_')
+    
+    # 重新组合文件名和扩展名
+    return safe_name + ext
 
 def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
     """
@@ -81,6 +102,55 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
     except Exception as e:
         raise Exception(f"处理Excel文件时出错: {str(e)}")
 
+def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_filename: str) -> str:
+    """
+    将设备材料字典数据写入新的Excel文件
+    
+    Args:
+        equipment_dict: 设备材料字典数据
+        original_filename: 原始文件名
+        
+    Returns:
+        新生成的Excel文件路径
+    """
+    try:
+        # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
+        timestamp = time.strftime("%y%m%d%H%M%S")
+        
+        # 使用安全的文件名处理函数，但保留原始字符
+        safe_original_filename = safe_filename(original_filename)
+        
+        # 构建新文件名
+        new_filename = f"{timestamp}_{safe_original_filename}"
+        output_path = os.path.join(OUTPUT_FOLDER, new_filename)
+        
+        # 创建一个Excel写入器
+        with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
+            # 为每个单体创建一个工作表
+            for unit, equipment_list in equipment_dict.items():
+                # 准备数据
+                data = []
+                for i, eq in enumerate(equipment_list, 1):
+                    data.append({
+                        '序号': i,
+                        '所属单体': unit,
+                        '名称': eq.name,
+                        '规格': eq.specification,
+                        '材料': eq.material,
+                        '单位': eq.unit,
+                        '数量': eq.quantity,
+                        '备注': eq.remarks
+                    })
+                
+                # 创建DataFrame并写入Excel
+                df = pd.DataFrame(data)
+                df.to_excel(writer, sheet_name=unit, index=False)
+        
+        return output_path
+        
+    except Exception as e:
+        raise Exception(f"写入Excel文件时出错: {str(e)}")
+
 def init_routes(app, socketio):
     """初始化路由和Socket.IO事件处理"""
     
@@ -106,8 +176,9 @@ def init_routes(app, socketio):
         session_id = request.headers.get('X-Session-ID')
         
         try:
-            # 生成安全的文件名
-            filename = secure_filename(file.filename)
+            # 使用安全的文件名处理函数，但保留原始字符
+            filename = safe_filename(file.filename)
+            
             # 添加时间戳确保文件名唯一
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             new_filename = f"{timestamp}_{filename}"
@@ -119,10 +190,13 @@ def init_routes(app, socketio):
             # 处理Excel文件
             equipment_dict = process_excel_file(file_path)
             
+            # 写入新的Excel文件
+            output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名
+            
             # 发送进度更新
             socketio.emit('progress', {
                 'progress': 100,
-                'stage': f'文件 {filename} 上传成功！\n保存为: {new_filename}\n成功读取设备材料表',
+                'stage': f'文件 {file.filename} 上传成功！\n保存为: {new_filename}\n成功读取设备材料表\n已生成输出文件: {os.path.basename(output_path)}',
                 'sessionId': session_id
             })
             
@@ -130,6 +204,7 @@ def init_routes(app, socketio):
                 'message': '文件上传成功',
                 'filename': new_filename,
                 'progress': 100,
+                'output_file': os.path.basename(output_path),
                 'equipment_data': {
                     unit: [
                         {
