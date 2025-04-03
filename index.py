@@ -57,6 +57,12 @@ def estimation_water():
     # 给排水厂站工程估算页面路由
     return render_template('estimation_water.html')
 
+@app.route('/estimation/water/upload', methods=['POST'])
+def estimation_water_upload():
+    _stage_update(5, '开始上传文件')
+    _dir_dict = dropzone_upload(socketio, client_sessions, 'water_estimation')
+    return {'??': 100}
+
 def _stage_update(p_percent, p_stage, session_id=None):
     if session_id:
         # 只向特定客户端发送进度更新
