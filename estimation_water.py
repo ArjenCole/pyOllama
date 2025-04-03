@@ -144,55 +144,54 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             from openpyxl.utils import get_column_letter
             
             # 设置边框样式
-            thin_border = Border(
+            border_thin = Border(
                 left=Side(style='thin'),
                 right=Side(style='thin'),
                 top=Side(style='thin'),
                 bottom=Side(style='thin')
             )
-            
-            # 设置标题行样式
-            header_font = Font(bold=True)
-            header_fill = PatternFill(start_color='CCCCCC', end_color='CCCCCC', fill_type='solid')
-            
+            border_none = Border(
+                left=Side(style='none'),
+                right=Side(style='none'),
+                top=Side(style='none'),
+                bottom=Side(style='none')
+            )
+
             # 应用标题行样式
             for col in range(1, len(template_df.columns) + 1):
                 cell = worksheet.cell(row=1, column=col)
-                cell.font = header_font
-                cell.fill = header_fill
-                cell.border = thin_border
-                cell.alignment = Alignment(horizontal='center', vertical='center')
+                cell.border = border_none
             
             # 找到"工程或费用名称"列的索引
             name_col_idx = 3
 
             # 从第2行开始写入数据（第1行是标题）
             current_row = 7
-            
+
             # 写入每个key，并在key之间添加3个空行
             for key in equipment_dict.keys():
                 # 写入key
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = key
-                cell.border = thin_border
+                cell.border = border_thin
                 cell.alignment = Alignment(horizontal='left', vertical='center')
 
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "土建"
-                cell.border = thin_border
+                cell.border = border_thin
                 cell.alignment = Alignment(horizontal='right', vertical='center')
 
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "管配件"
-                cell.border = thin_border
+                cell.border = border_thin
                 cell.alignment = Alignment(horizontal='right', vertical='center')
 
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "设备"
-                cell.border = thin_border
+                cell.border = border_thin
                 cell.alignment = Alignment(horizontal='right', vertical='center')
 
                 current_row += 1
@@ -210,7 +209,25 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             # 设置行高
             for row in range(1, current_row):
                 worksheet.row_dimensions[row].height = 20
-        
+            worksheet.row_dimensions[5].height = 40
+
+            worksheet.merge_cells('B2:L2')
+            worksheet.merge_cells('B4:B5')
+            worksheet.merge_cells('C4:C5')
+            worksheet.merge_cells('D4:H4')
+            worksheet.merge_cells('I4:K4')
+            worksheet.merge_cells('L4:L5')
+
+
+            # 第4-6行单元格全部居中
+            for row in range(2, 6):
+                if row == 3:
+                    continue
+                for cell in worksheet[row]:
+                    cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            worksheet['B3'].alignment = Alignment(horizontal='left', vertical='center')
+
+
         return output_path
         
     except Exception as e:
