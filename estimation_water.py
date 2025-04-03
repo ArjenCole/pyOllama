@@ -127,11 +127,12 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         # 读取标准模板
         template_path = os.path.join('templates', 'standard.xlsx')
         template_wb = pd.ExcelFile(template_path)
-        template_df = pd.read_excel(template_wb, sheet_name='Sheet1')
-        
+        template_df = pd.read_excel(template_wb, sheet_name='Sheet1', index_col=None)
+
         # 创建一个新的Excel写入器
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-            # 复制模板的格式
+            # 复制模板的格式，不包含索引
+            template_df.columns = ['','','','','','','','','','','','']
             template_df.to_excel(writer, sheet_name='Sheet1', index=False)
             
             # 获取工作簿和工作表对象
