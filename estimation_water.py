@@ -133,7 +133,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         from openpyxl import load_workbook
         template_wb = load_workbook(template_path)
         template_ws = template_wb['Sheet1']
-        
+
         # 创建一个空的DataFrame作为初始工作表
         df = pd.DataFrame()
         
@@ -171,59 +171,86 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         target_cell.protection = template_cell.protection.copy()
                         # 复制对齐方式
                         target_cell.alignment = template_cell.alignment.copy()
-            
             # 复制合并单元格
             for merged_range in template_ws.merged_cells.ranges:
                 if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
                     worksheet.merge_cells(str(merged_range))
-            
+
             # 复制列宽
             for col in range(1, len(template_ws[1]) + 1):
                 column_letter = get_column_letter(col)
                 worksheet.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
+                # print(column_letter, template_ws.column_dimensions[column_letter].width)
             
             # 复制行高
             for row in range(1, 8):  # 复制前7行的行高
                 worksheet.row_dimensions[row].height = template_ws.row_dimensions[row].height
-            
+
             # 找到"工程或费用名称"列的索引
             name_col_idx = 3
+            sum_col_idx = 8
 
             # 从第8行开始写入数据
             current_row = 8
-            
+
             # 写入每个key，并在key之间添加3个空行
             for key in equipment_dict.keys():
                 # 写入key
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = key
-                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()  # 使用模板的边框样式
-                cell.alignment = template_ws.cell(row=2, column=name_col_idx).alignment.copy()  # 使用模板的对齐方式
-                
+                cell = worksheet.cell(row=current_row, column=sum_col_idx)
+                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                row_formate(worksheet, template_ws, current_row)
+
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "土建"
-                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()
                 cell.alignment = Alignment(horizontal='right', vertical='center')
+                cell = worksheet.cell(row=current_row, column=sum_col_idx)
+                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                row_formate(worksheet, template_ws, current_row)
                 
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "管配件"
-                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()
                 cell.alignment = Alignment(horizontal='right', vertical='center')
+                cell = worksheet.cell(row=current_row, column=sum_col_idx)
+                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                row_formate(worksheet, template_ws, current_row)
                 
                 current_row += 1
                 cell = worksheet.cell(row=current_row, column=name_col_idx)
                 cell.value = "设备"
-                cell.border = template_ws.cell(row=2, column=name_col_idx).border.copy()
                 cell.alignment = Alignment(horizontal='right', vertical='center')
-                
+                cell = worksheet.cell(row=current_row, column=sum_col_idx)
+                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                row_formate(worksheet, template_ws, current_row)
+
+                for feCol in range(4, 8):
+                    cell = worksheet.cell(row=current_row - 3, column=feCol)
+                    cell.value = f"=SUM({get_column_letter(feCol)}{current_row - 2}:{get_column_letter(feCol)}{current_row})"
+
                 current_row += 1
-        
+
+            for feCol in range(4, 8):
+                cell = worksheet.cell(row=7, column=feCol)
+                cell.value = f"=SUM({get_column_letter(feCol)}{7+1}:{get_column_letter(feCol)}{current_row})"
+            cell = worksheet.cell(row=7, column=8)
+            cell.value = "=SUM(D7:G7)"
+
         return output_path
         
     except Exception as e:
         raise Exception(f"写入Excel文件时出错: {str(e)}")
+
+
+def row_formate(pWorksheet, pTemplate_ws, pRow):
+    pWorksheet.row_dimensions[pRow].height = pTemplate_ws.row_dimensions[7].height  # 调整行高
+    for feCol in range(1, 13):
+        tCell = pWorksheet.cell(row=pRow, column=feCol)
+        tCell.border = pTemplate_ws.cell(row=8, column=feCol).border.copy()  # 使用模板的边框样式
+        if feCol != 3:
+            tCell.alignment = pTemplate_ws.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
 
 def init_routes(app, socketio):
     """初始化路由和Socket.IO事件处理"""
