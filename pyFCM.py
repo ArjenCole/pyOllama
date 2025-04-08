@@ -1,5 +1,7 @@
 from fuzzychinese import FuzzyChineseMatch
+from fuzzywuzzy import process
 import re  # 正则表达式
+
 # import pandas as pd
 
 # 定义目标词汇列表
@@ -43,3 +45,29 @@ def test_para(para):
     para = {'细目', '序号'}
     rtp = para
     return rtp
+
+
+# 定义管配件名称列表
+pipe_fittings = [
+    "直管", "套管", "柔性防水套管A型Ⅰ型", "柔性防水套管A型Ⅱ型", "柔性防水套管B型Ⅰ型",
+    "柔性防水套管B型Ⅱ型", "法兰套管A型Ⅰ型", "法兰套管A型Ⅱ型", "法兰套管B型Ⅰ型",
+    "法兰套管B型Ⅱ型", "刚性防水套管A型", "刚性防水套管B型", "刚性防水套管C型",
+    "刚性防水翼环", "90°弯头", "60°弯头", "45°弯头", "30°弯头", "22°30′弯头",
+    "90°异径弯头"
+]
+
+
+def fuzzy_match_pipe(input_string):
+    """
+    输入一个字符串，返回最匹配的管配件名称及其相似度得分。
+
+    参数:
+        input_string (str): 输入的字符串
+
+    返回:
+        tuple: (最匹配的管配件名称, 相似度得分)
+    """
+    # 使用 fuzzywuzzy 的 process.extractOne 方法进行模糊匹配
+    best_match, score = process.extractOne(input_string, pipe_fittings)
+
+    return best_match, score
