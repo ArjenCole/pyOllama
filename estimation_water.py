@@ -204,15 +204,12 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "土建")
-                row_formate(worksheet, template_ws, current_row)
                 
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
-                row_formate(worksheet, template_ws, current_row)
                 
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
-                row_formate(worksheet, template_ws, current_row)
 
                 for feCol in range(4, 8):
                     cell = worksheet.cell(row=current_row - 3, column=feCol)
