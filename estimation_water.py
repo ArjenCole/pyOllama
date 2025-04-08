@@ -203,27 +203,15 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 row_formate(worksheet, template_ws, current_row)
 
                 current_row += 1
-                cell = worksheet.cell(row=current_row, column=name_col_idx)
-                cell.value = "土建"
-                cell.alignment = Alignment(horizontal='right', vertical='center')
-                cell = worksheet.cell(row=current_row, column=sum_col_idx)
-                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "土建")
                 row_formate(worksheet, template_ws, current_row)
                 
                 current_row += 1
-                cell = worksheet.cell(row=current_row, column=name_col_idx)
-                cell.value = "管配件"
-                cell.alignment = Alignment(horizontal='right', vertical='center')
-                cell = worksheet.cell(row=current_row, column=sum_col_idx)
-                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
                 row_formate(worksheet, template_ws, current_row)
                 
                 current_row += 1
-                cell = worksheet.cell(row=current_row, column=name_col_idx)
-                cell.value = "设备"
-                cell.alignment = Alignment(horizontal='right', vertical='center')
-                cell = worksheet.cell(row=current_row, column=sum_col_idx)
-                cell.value = f"=SUM(D{current_row}:G{current_row})"
+                cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
                 row_formate(worksheet, template_ws, current_row)
 
                 for feCol in range(4, 8):
@@ -242,6 +230,16 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         
     except Exception as e:
         raise Exception(f"写入Excel文件时出错: {str(e)}")
+
+
+def cell_format(pWorksheet, pTemplate_ws, pCurrent_row, name_col_idx, sum_col_idx, pValue):
+    pCell = pWorksheet.cell(row=pCurrent_row, column=name_col_idx)
+    pCell.value = pValue
+    pCell.alignment = Alignment(horizontal='right', vertical='center')
+    cell = pWorksheet.cell(row=pCurrent_row, column=sum_col_idx)
+    cell.value = f"=SUM(D{pCurrent_row}:G{pCurrent_row})"
+    row_formate(pWorksheet, pTemplate_ws, pCurrent_row)
+
 
 
 def row_formate(pWorksheet, pTemplate_ws, pRow):
