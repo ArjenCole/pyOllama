@@ -277,11 +277,18 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell.value = feEM.name
                     Cell = worksheet2.cell(row=current_row, column=4)
                     Cell.value = feEM.specification
+                    Cell = worksheet2.cell(row=current_row, column=5)
+                    Cell.value = feEM.unit
+                    Cell = worksheet2.cell(row=current_row, column=6)
+                    Cell.value = feEM.quantity
+                    Cell = worksheet2.cell(row=current_row, column=9)
+                    Cell.value = feEM.material
                     tBM, tScore = fuzzy_match_pipe(feEM.name)
+
                     if tScore > 0:
-                        Cell = worksheet2.cell(row=current_row, column=9)
-                        Cell.value = tBM
                         Cell = worksheet2.cell(row=current_row, column=10)
+                        Cell.value = tBM
+                        Cell = worksheet2.cell(row=current_row, column=11)
                         Cell.value = tScore
                     current_row += 1
 
