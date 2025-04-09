@@ -99,6 +99,7 @@ def extract_specifications(spec_string):
         for diameter in match:
             if diameter:
                 result["管径"].append(int(diameter))
+    result["管径"].sort(reverse=True)
 
     # 提取长度
     # 匹配模式：L或La后跟全角或半角等号和数字，可能有单位
