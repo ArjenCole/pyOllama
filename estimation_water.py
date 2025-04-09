@@ -20,6 +20,7 @@ ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
+
 @dataclass
 class EquipmentMaterial:
     """设备材料信息类"""
@@ -30,9 +31,61 @@ class EquipmentMaterial:
     quantity: float  # 数量
     remarks: str  # 备注
 
+
+weight_dict_Q235A = {}
+
+# 读取重量表
+def atlas():
+    df = pd.read_excel("templates/250407管配件重量表.xlsx", header=0, index_col=0)
+
+    # 创建一个字典，用于存储每种管配件的每米重量
+
+    # 遍历表格，提取每米重量
+    for index, row in df.iterrows():
+        # 遍历 row 中的每一个单元格
+        dn1 = 0
+        dn2 = 0
+        for column_name, value in row.items():
+            if column_name == "管径1":
+                dn1 = int(value)
+            elif column_name == "管径2":
+                dn2 = int(value)
+            else:
+                if pd.notna(value):  # 使用 pd.notna() 判断值是否不是 NaN
+                    # print(f"{column_name} DN{dn1} ×DN{dn2}: {value}")
+                    weight_dict_Q235A[column_name] = {dn1: {dn2: value}}
+                    # print(weight_dict_Q235A[column_name])
+
+
+def find_closest_key(random_number, dictionary):
+    """
+    找到与随机整数差值最小的字典键。
+    参数:
+        random_number (int): 随机整数
+        dictionary (dict): 字典，键是整数
+    返回:
+        int: 与随机整数差值最小的键
+    """
+    # 初始化最小差值和最接近的键
+    min_diff = float('inf')  # 设置为无穷大
+    closest_key = None
+
+    # 遍历字典的键
+    for key in dictionary.keys():
+        # 计算差值
+        diff = abs(key - random_number)
+        # 更新最小差值和最接近的键
+        if diff < min_diff:
+            min_diff = diff
+            closest_key = key
+
+    return closest_key
+
+
 def allowed_file(filename):
     """检查文件类型是否允许"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def safe_filename(filename: str) -> str:
     """
@@ -46,12 +99,13 @@ def safe_filename(filename: str) -> str:
     """
     # 获取文件扩展名
     name, ext = os.path.splitext(filename)
-    
+
     # 替换不安全的字符，但保留中文
     safe_name = name.replace('/', '_').replace('\\', '_')
-    
+
     # 重新组合文件名和扩展名
     return safe_name + ext
+
 
 def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
     """
@@ -66,24 +120,24 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
     try:
         # 使用openpyxl引擎读取Excel文件
         excel_file = pd.ExcelFile(file_path, engine='openpyxl')
-        
+
         # 查找设备材料表
         # 假设表头包含这些字段
         required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
-        
+
         # 遍历所有工作表
         for sheet_name in excel_file.sheet_names:
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl')
             if all(col in df_sheet.columns for col in required_columns):
                 # 找到目标表格
                 result_dict = {}
-                
+
                 # 遍历每一行
                 for _, row in df_sheet.iterrows():
                     unit = row["所属单体"]
                     if pd.isna(unit):  # 跳过空行
                         continue
-                        
+
                     # 创建设备材料对象
                     equipment = EquipmentMaterial(
                         name=str(row["名称"]),
@@ -93,18 +147,19 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                         quantity=float(row["数量"]) if pd.notna(row["数量"]) else 0.0,
                         remarks=str(row["备注"]) if pd.notna(row["备注"]) else ""
                     )
-                    
+
                     # 将设备材料添加到对应单体的列表中
                     if unit not in result_dict:
                         result_dict[unit] = []
                     result_dict[unit].append(equipment)
-                
+
                 return result_dict
-                
+
         raise ValueError("未找到符合要求的设备材料表")
-        
+
     except Exception as e:
         raise Exception(f"处理Excel文件时出错: {str(e)}")
+
 
 def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_filename: str) -> str:
     """
@@ -120,17 +175,17 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
     try:
         # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
         timestamp = time.strftime("%y%m%d%H%M%S")
-        
+
         # 使用安全的文件名处理函数，但保留原始字符
         safe_original_filename = safe_filename(original_filename)
-        
+
         # 构建新文件名
         new_filename = f"{timestamp}_{safe_original_filename}"
         output_path = os.path.join(OUTPUT_FOLDER, new_filename)
-        
+
         # 读取标准模板
         template_path = os.path.join('templates', 'standard.xlsx')
-        
+
         # 使用openpyxl直接读取模板文件以保留格式
         from openpyxl import load_workbook
         template_wb = load_workbook(template_path)
@@ -138,16 +193,16 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
         # 创建一个空的DataFrame作为初始工作表
         df = pd.DataFrame()
-        
+
         # 创建一个新的Excel写入器
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
             # 先写入空的DataFrame以创建工作表
             df.to_excel(writer, sheet_name='总表', index=False)
-            
+
             # 获取工作簿和工作表对象
             workbook = writer.book
             worksheet = writer.sheets['总表']
-            
+
             # 复制模板的前7行格式
             for row in range(1, 8):  # 复制前7行
                 for col in range(1, len(template_ws[1]) + 1):
@@ -155,10 +210,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     template_cell = template_ws.cell(row=row, column=col)
                     # 获取目标单元格
                     target_cell = worksheet.cell(row=row, column=col)
-                    
+
                     # 复制单元格值
                     target_cell.value = template_cell.value
-                    
+
                     # 复制单元格格式
                     if template_cell.has_style:
                         # 复制字体
@@ -183,7 +238,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 column_letter = get_column_letter(col)
                 worksheet.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
                 # print(column_letter, template_ws.column_dimensions[column_letter].width)
-            
+
             # 复制行高
             for row in range(1, 8):  # 复制前7行的行高
                 worksheet.row_dimensions[row].height = template_ws.row_dimensions[row].height
@@ -206,10 +261,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "土建")
-                
+
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
-                
+
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
 
@@ -221,14 +276,14 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
             for feCol in range(4, 8):
                 cell = worksheet.cell(row=7, column=feCol)
-                cell.value = f"=SUM({get_column_letter(feCol)}{7+1}:{get_column_letter(feCol)}{current_row})"
+                cell.value = f"=SUM({get_column_letter(feCol)}{7 + 1}:{get_column_letter(feCol)}{current_row})"
             cell = worksheet.cell(row=7, column=8)
             cell.value = "=SUM(D7:G7)"
 
             # 创建第二个工作表（设备材料表）
             template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
             worksheet2 = workbook.create_sheet('设备材料表')  # 创建新的工作表
-            
+
             # 复制Sheet2的前7行格式
             for row in range(1, 8):  # 复制前7行
                 for col in range(1, len(template_ws2[1]) + 1):
@@ -236,10 +291,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     template_cell = template_ws2.cell(row=row, column=col)
                     # 获取目标单元格
                     target_cell = worksheet2.cell(row=row, column=col)
-                    
+
                     # 复制单元格值
                     target_cell.value = template_cell.value
-                    
+
                     # 复制单元格格式
                     if template_cell.has_style:
                         # 复制字体
@@ -254,18 +309,19 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         target_cell.protection = template_cell.protection.copy()
                         # 复制对齐方式
                         target_cell.alignment = template_cell.alignment.copy()
-            
+
             # 复制Sheet2的合并单元格
             for merged_range in template_ws2.merged_cells.ranges:
                 if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
                     worksheet2.merge_cells(str(merged_range))
-            
+
             # 复制Sheet2的列宽
             for col in range(1, len(template_ws2[1]) + 1):
                 column_letter = get_column_letter(col)
                 if column_letter in template_ws2.column_dimensions:
-                    worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[column_letter].width
-            
+                    worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
+                        column_letter].width
+
             # 复制Sheet2的行高
             for row in range(1, 8):  # 复制前7行的行高
                 worksheet2.row_dimensions[row].height = template_ws2.row_dimensions[row].height
@@ -298,13 +354,25 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             Cell.value = str(Cell.value) + " " + str(feDN)
                         Cell = worksheet2.cell(row=current_row, column=13)
                         Cell.value = str(tResult["长度"]) + " " + str(tResult["单位"])
-
-
+                        if tBM in weight_dict_Q235A.keys():
+                            # print(tResult["管径"],len(tResult["管径"]))
+                            if len(tResult["管径"]) == 0:
+                                continue
+                            dn1 = tResult["管径"][0]
+                            dn2 = dn1
+                            if len(tResult["管径"]) > 1:
+                                dn2 = tResult["管径"][1]
+                            tDic = weight_dict_Q235A[tBM][find_closest_key(dn1, weight_dict_Q235A[tBM])]
+                            value = tDic[find_closest_key(dn2, tDic)]
+                            Cell = worksheet2.cell(row=current_row, column=14)
+                            Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
+                            Cell = worksheet2.cell(row=current_row, column=15)
+                            Cell.value = str(value)
 
                     current_row += 1
 
         return output_path
-        
+
     except Exception as e:
         raise Exception(f"写入Excel文件时出错: {str(e)}")
 
@@ -326,12 +394,14 @@ def row_formate(pWorksheet, pTemplate_ws, pRow):
         if feCol != 3:
             tCell.alignment = pTemplate_ws.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
 
+
 def init_routes(app, socketio):
     """初始化路由和Socket.IO事件处理"""
-    
+
     @app.route('/estimation/water')
     def estimation_water():
         """水厂智能估算页面路由"""
+        atlas()
         return render_template('estimation_water.html')
 
     @app.route('/estimation/water/upload', methods=['POST'])
@@ -339,42 +409,42 @@ def init_routes(app, socketio):
         """处理文件上传"""
         if 'file0' not in request.files:
             return jsonify({'error': '没有文件被上传'}), 400
-        
+
         file = request.files['file0']
         if file.filename == '':
             return jsonify({'error': '没有选择文件'}), 400
-        
+
         if not allowed_file(file.filename):
             return jsonify({'error': '不支持的文件类型'}), 400
-        
+
         # 获取会话ID
         session_id = request.headers.get('X-Session-ID')
-        
+
         try:
             # 使用安全的文件名处理函数，但保留原始字符
             filename = safe_filename(file.filename)
-            
+
             # 添加时间戳确保文件名唯一
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             new_filename = f"{timestamp}_{filename}"
             file_path = os.path.join(UPLOAD_FOLDER, new_filename)
-            
+
             # 保存文件
             file.save(file_path)
-            
+
             # 处理Excel文件
             equipment_dict = process_excel_file(file_path)
-            
+
             # 写入新的Excel文件
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名
-            
+
             # 发送进度更新
             socketio.emit('progress', {
                 'progress': 100,
                 'stage': f'文件 {file.filename} 上传成功！\n保存为: {new_filename}\n成功读取设备材料表\n已生成输出文件: {os.path.basename(output_path)}',
                 'sessionId': session_id
             })
-            
+
             return jsonify({
                 'message': '文件上传成功',
                 'filename': new_filename,
@@ -395,7 +465,7 @@ def init_routes(app, socketio):
                     for unit, equipment_list in equipment_dict.items()
                 }
             })
-            
+
         except Exception as e:
             # 发送错误信息
             socketio.emit('progress', {
@@ -410,4 +480,4 @@ def init_routes(app, socketio):
         """处理上传开始事件"""
         filename = data.get('filename')
         session_id = data.get('sessionId')
-        print(f'Upload started for file: {filename} (Session: {session_id})') 
+        print(f'Upload started for file: {filename} (Session: {session_id})')
