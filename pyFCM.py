@@ -47,8 +47,9 @@ def test_para(para):
     return rtp
 
 
+material_fittings = ["Q235A", "SS304", "橡胶", "PE100", "PVC-U", "nan"]
 # 定义管配件名称列表
-pipe_fittings = [
+pipe_Q235A_fittings = [
     "直管", "套管", "柔性防水套管A型Ⅰ型", "柔性防水套管A型Ⅱ型", "柔性防水套管B型Ⅰ型",
     "柔性防水套管B型Ⅱ型", "法兰套管A型Ⅰ型", "法兰套管A型Ⅱ型", "法兰套管B型Ⅰ型",
     "法兰套管B型Ⅱ型", "刚性防水套管A型", "刚性防水套管B型", "刚性防水套管C型",
@@ -58,7 +59,8 @@ pipe_fittings = [
 ]
 
 
-def fuzzy_match_pipe(input_string):
+
+def fuzzy_match_pipe(pEquipmentMaterial):
     """
     输入一个字符串，返回最匹配的管配件名称及其相似度得分。
 
@@ -69,6 +71,42 @@ def fuzzy_match_pipe(input_string):
         tuple: (最匹配的管配件名称, 相似度得分)
     """
     # 使用 fuzzywuzzy 的 process.extractOne 方法进行模糊匹配
-    best_match, score = process.extractOne(input_string, pipe_fittings)
+    best_match_material, score = process.extractOne(pEquipmentMaterial.material, material_fittings)
+    best_match = ""
+    score = 0
+    if best_match_material == "Q235A" or best_match_material == "SS304":
+        best_match, score = process.extractOne(pEquipmentMaterial.name, pipe_Q235A_fittings)
 
     return best_match, score
+
+
+def extract_specifications(spec_string):
+    """
+    从规格字符串中提取管径和长度参数。
+    参数:
+        spec_string (str): 规格字符串，例如 "DN1=1200,DN2=500,DN3=500" 或 "DN1400，L=9000"
+    返回:
+        dict: 包含提取的管径和长度参数
+    """
+    # 初始化结果字典
+    result = {"管径": [], "长度": None}
+
+    # 提取管径
+    # 匹配模式：DN后可能跟标识符（如DN1），然后是等号和数字
+    diameter_pattern = re.compile(r'DN\d*\s*=\s*(\d+)|DN(\d+)')
+    diameter_matches = diameter_pattern.findall(spec_string)
+    for match in diameter_matches:
+        for diameter in match:
+            if diameter:
+                result["管径"].append(int(diameter))
+
+    # 提取长度
+    # 匹配模式：L或La后跟全角或半角等号和数字，可能有单位
+    length_pattern = re.compile(r'(L|La)\s*[=＝]\s*(\d+)(mm|cm|m)?')
+    length_match = length_pattern.search(spec_string)
+    if length_match:
+        length_value = int(length_match.group(2))
+        length_unit = length_match.group(3) if length_match.group(3) else "mm"  # 默认单位为 mm
+        result["长度"] = {"值": length_value, "单位": length_unit}
+
+    return result

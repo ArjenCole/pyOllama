@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
 from openpyxl.utils import get_column_letter
 
-from pyFCM import fuzzy_match_pipe
+from pyFCM import fuzzy_match_pipe, extract_specifications
 
 # 配置上传文件存储路径
 UPLOAD_FOLDER = 'uploads/estimation_water'
@@ -283,13 +283,23 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell.value = feEM.quantity
                     Cell = worksheet2.cell(row=current_row, column=9)
                     Cell.value = feEM.material
-                    tBM, tScore = fuzzy_match_pipe(feEM.name)
+                    tBM, tScore = fuzzy_match_pipe(feEM)
 
                     if tScore > 0:
                         Cell = worksheet2.cell(row=current_row, column=10)
                         Cell.value = tBM
                         Cell = worksheet2.cell(row=current_row, column=11)
                         Cell.value = tScore
+                        tResult = extract_specifications(feEM.specification)
+                        Cell = worksheet2.cell(row=current_row, column=12)
+                        for feDN in tResult["管径"]:
+                            if Cell.value is None:
+                                Cell.value = ""
+                            Cell.value = str(Cell.value) + " " + str(feDN)
+                        Cell = worksheet2.cell(row=current_row, column=13)
+                        if tResult["长度"] is not None:
+                            Cell.value = tResult["长度"]["值"]
+
                     current_row += 1
 
         return output_path
