@@ -89,7 +89,7 @@ def extract_specifications(spec_string):
         dict: 包含提取的管径和长度参数
     """
     # 初始化结果字典
-    result = {"管径": [], "长度": None}
+    result = {"管径": [], "长度": 0, "单位": ""}
 
     # 提取管径
     # 匹配模式：DN后可能跟标识符（如DN1），然后是等号和数字
@@ -107,6 +107,7 @@ def extract_specifications(spec_string):
     if length_match:
         length_value = int(length_match.group(2))
         length_unit = length_match.group(3) if length_match.group(3) else "mm"  # 默认单位为 mm
-        result["长度"] = {"值": length_value, "单位": length_unit}
+        result["长度"] = float(length_value)
+        result["单位"] = length_unit
 
     return result

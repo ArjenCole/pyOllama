@@ -297,8 +297,9 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 Cell.value = ""
                             Cell.value = str(Cell.value) + " " + str(feDN)
                         Cell = worksheet2.cell(row=current_row, column=13)
-                        if tResult["长度"] is not None:
-                            Cell.value = tResult["长度"]["值"]
+                        Cell.value = str(tResult["长度"]) + " " + str(tResult["单位"])
+
+
 
                     current_row += 1
 
