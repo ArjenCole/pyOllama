@@ -351,7 +351,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell = worksheet2.cell(row=current_row, column=9)
                     Cell.value = feEM.material
                     print(feEM.name)
-                    tBM, tScore = fuzzy_match_EM(feEM)
+                    tBM, tScore, tType = fuzzy_match_EM(feEM)
                     print(tBM, tScore)
 
                     if tScore > 0:
@@ -381,6 +381,18 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
                             Cell = worksheet2.cell(row=current_row, column=15)
                             Cell.value = str(value)
+                        Cell = worksheet2.cell(row=current_row, column=16)
+
+                        if tType == "阀门":
+                            if len(tResult["管径"]) > 0:
+                                if tResult["管径"][0] >= 600:
+                                    tType = "设备"
+                                else:
+                                    tType = "材料"
+                            else:
+                                tType = "材料"
+
+                        Cell.value = str(tType)
 
                     current_row += 1
 

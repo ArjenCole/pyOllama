@@ -15,7 +15,6 @@ def init_atlas(pAtlas_PipeFittingsQ235A, pAtlas_valve):
     global Atlas_PipeFittingsQ235A, Atlas_Valve
     Atlas_PipeFittingsQ235A = pAtlas_PipeFittingsQ235A
     Atlas_Valve = pAtlas_valve
-    print(Atlas_PipeFittingsQ235A.keys())
 
 
 
@@ -61,46 +60,32 @@ material_type = ["管配件", "阀门", "设备", "材料"]
 
 
 def fuzzy_match_EM(pEquipmentMaterial):
-    """
-    输入一个字符串，返回最匹配的管配件名称及其相似度得分。
-
-    参数:
-        input_string (str): 输入的字符串
-
-    返回:
-        tuple: (最匹配的管配件名称, 相似度得分)
-    """
-    # 使用 fuzzywuzzy 的 process.extractOne 方法进行模糊匹配
     best_match_material, score = process.extractOne(pEquipmentMaterial.material, material_fittings)
     rtBest_match = ""
     rtScore = 0
+    rtType = ""
     if best_match_material == "Q235A" or best_match_material == "SS304":
-        print(Atlas_PipeFittingsQ235A.keys())
         match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsQ235A.keys())
         if match_result is not None:  # 检查是否找到匹配
             best_match, score = match_result
-            print(best_match, score)
             if score > rtScore:
                 rtBest_match = best_match
                 rtScore = score
+                rtType = "管配件"
+    match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
+    if match_result is not None:  # 检查是否找到匹配
+        best_match, score = match_result
+        if score > rtScore:
+            rtBest_match = best_match
+            rtScore = score
+            rtType = "阀门"
+    return rtBest_match, rtScore, rtType
 
-    return rtBest_match, rtScore
 
-
-def extract_specifications(spec_string):
-    """
-    从规格字符串中提取管径和长度参数。
-    参数:
-        spec_string (str): 规格字符串，例如 "DN1=1200,DN2=500,DN3=500" 或 "DN1400，L=9000"
-    返回:
-        dict: 包含提取的管径和长度参数
-    """
-    # 初始化结果字典
-    result = {"管径": [], "长度": 0, "单位": ""}
-
+def extract_specifications(spec_string):  # 从规格字符串中提取管径和长度参数 参数例 "DN1=1200,DN2=500,DN3=500""DN1400，L=9000"
+    result = {"管径": [], "长度": 0, "单位": ""}  # 初始化结果字典
     # 提取管径
-    # 匹配模式：DN后可能跟标识符（如DN1），然后是等号和数字
-    diameter_pattern = re.compile(r'DN\d*\s*=\s*(\d+)|DN(\d+)')
+    diameter_pattern = re.compile(r'DN\d*\s*=\s*(\d+)|DN(\d+)')  # 匹配模式：DN后可能跟标识符（如DN1），然后是等号和数字
     diameter_matches = diameter_pattern.findall(spec_string)
     for match in diameter_matches:
         for diameter in match:
@@ -109,8 +94,7 @@ def extract_specifications(spec_string):
     result["管径"].sort(reverse=True)
 
     # 提取长度
-    # 匹配模式：L或La后跟全角或半角等号和数字，可能有单位
-    length_pattern = re.compile(r'(L|La)\s*[=＝]\s*(\d+)(mm|cm|m)?')
+    length_pattern = re.compile(r'(L|La)\s*[=＝]\s*(\d+)(mm|cm|m)?')  # 匹配模式：L或La后跟全角或半角等号和数字，可能有单位
     length_match = length_pattern.search(spec_string)
     if length_match:
         length_value = int(length_match.group(2))
