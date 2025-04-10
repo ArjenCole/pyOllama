@@ -102,7 +102,7 @@ def extract_specifications(spec_string):  # 从规格字符串中提取管径和
         result["长度"] = float(length_value)
         result["长度单位"] = length_unit
 
-    power_pattern = re.compile(r"N=(\d+(\.\d+)?)(kW|W)")
+    power_pattern = re.compile(r"(\d+(\.\d+)?)(kW|W)", re.IGNORECASE)
     power_match = power_pattern.search(spec_string)
     if power_match:
         # 提取功率值

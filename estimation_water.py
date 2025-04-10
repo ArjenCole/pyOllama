@@ -390,6 +390,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell = worksheet2.cell(row=current_row, column=16)
                     if tResult["功率"] > 0:
                         tType = "设备"
+                    if tType == "":
+                        tType = "材料"
                     Cell.value = str(tType)
 
                     current_row += 1
