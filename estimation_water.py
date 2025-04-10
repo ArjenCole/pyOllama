@@ -301,7 +301,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             target_cell = worksheet2.cell(row=row, column=col)
 
                             # 复制单元格值
-                            target_cell.value = template_cell.value
+                            if row == 3 and col == 2:
+                                target_cell.value = key + " " + category[feSheetname][0]
+                            else:
+                                target_cell.value = template_cell.value
 
                             # 复制单元格格式
                             if template_cell.has_style:
