@@ -339,13 +339,11 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     for feEM in equipment_dict[key]:
                         tBM, tScore, tType = fuzzy_match_EM(feEM)
                         tResult = extract_specifications(feEM.specification)
+                        dn1 = 0
+                        dn2 = 0
+                        tValue = ""
 
                         if tScore > 0:
-                            for feDN in tResult["管径"]:
-                                if Cell.value is None:
-                                    Cell.value = ""
-                                Cell.value = str(Cell.value) + " " + str(feDN)
-
                             if tBM in Atlas_PipeFittingsQ235A.keys():
                                 if len(tResult["管径"]) == 0:
                                     continue
@@ -354,11 +352,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 if len(tResult["管径"]) > 1:
                                     dn2 = tResult["管径"][1]
                                 tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
-                                value = tDic[find_closest_key(dn2, tDic)]
-                                Cell = worksheet2.cell(row=current_row, column=14)
-                                Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
-                                Cell = worksheet2.cell(row=current_row, column=15)
-                                Cell.value = str(value)
+                                tValue = tDic[find_closest_key(dn2, tDic)]
+
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
                                 if len(tResult["管径"]) > 0:
@@ -368,19 +363,11 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                         tType = "管配件"
                                 else:
                                     tType = "材料"
-                        Cell = worksheet2.cell(row=current_row, column=16)
                         if tResult["功率"] > 0:
                             tType = "设备"
                         if tType == "":
                             tType = "材料"
-                        Cell.value = str(tType)
                         if tType not in category[feSheetname]:
-                            Cell = worksheet2.cell(row=current_row, column=14)
-                            cell.value = ""
-                            Cell = worksheet2.cell(row=current_row, column=15)
-                            cell.value = ""
-                            Cell = worksheet2.cell(row=current_row, column=16)
-                            cell.value = ""
                             continue
                         Cell = worksheet2.cell(row=current_row, column=3)
                         Cell.value = feEM.name
@@ -397,9 +384,18 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         Cell = worksheet2.cell(row=current_row, column=11)
                         Cell.value = tScore
                         Cell = worksheet2.cell(row=current_row, column=12)
+                        for feDN in tResult["管径"]:
+                            if Cell.value is None:
+                                Cell.value = ""
+                            Cell.value = str(Cell.value) + " " + str(feDN)
                         Cell = worksheet2.cell(row=current_row, column=13)
                         Cell.value = str(tResult["长度"]) + " " + str(tResult["长度单位"])
-
+                        Cell = worksheet2.cell(row=current_row, column=14)
+                        Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
+                        Cell = worksheet2.cell(row=current_row, column=15)
+                        Cell.value = str(tValue)
+                        Cell = worksheet2.cell(row=current_row, column=16)
+                        Cell.value = str(tType)
                         current_row += 1
 
 
