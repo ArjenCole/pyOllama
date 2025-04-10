@@ -285,116 +285,122 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             cell = worksheet.cell(row=7, column=8)
             cell.value = "=SUM(D7:G7)"
 
-
-
+            category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
             for key in equipment_dict.keys():
-                # 创建第二个工作表（设备材料表）
-                template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
-                worksheet2 = workbook.create_sheet(key)  # 创建新的工作表
+                for feSheetname in category.keys():
+                    # 创建第二个工作表（设备材料表）
+                    template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
+                    worksheet2 = workbook.create_sheet(key + feSheetname)  # 创建新的工作表
 
-                # 复制Sheet2的前7行格式
-                for row in range(1, 8):  # 复制前7行
+                    # 复制Sheet2的前7行格式
+                    for row in range(1, 8):  # 复制前7行
+                        for col in range(1, len(template_ws2[1]) + 1):
+                            # 获取模板单元格
+                            template_cell = template_ws2.cell(row=row, column=col)
+                            # 获取目标单元格
+                            target_cell = worksheet2.cell(row=row, column=col)
+
+                            # 复制单元格值
+                            target_cell.value = template_cell.value
+
+                            # 复制单元格格式
+                            if template_cell.has_style:
+                                # 复制字体
+                                target_cell.font = template_cell.font.copy()
+                                # 复制边框
+                                target_cell.border = template_cell.border.copy()
+                                # 复制填充
+                                target_cell.fill = template_cell.fill.copy()
+                                # 复制数字格式
+                                target_cell.number_format = template_cell.number_format
+                                # 复制保护
+                                target_cell.protection = template_cell.protection.copy()
+                                # 复制对齐方式
+                                target_cell.alignment = template_cell.alignment.copy()
+
+                    # 复制Sheet2的合并单元格
+                    for merged_range in template_ws2.merged_cells.ranges:
+                        if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
+                            worksheet2.merge_cells(str(merged_range))
+
+                    # 复制Sheet2的列宽
                     for col in range(1, len(template_ws2[1]) + 1):
-                        # 获取模板单元格
-                        template_cell = template_ws2.cell(row=row, column=col)
-                        # 获取目标单元格
-                        target_cell = worksheet2.cell(row=row, column=col)
+                        column_letter = get_column_letter(col)
+                        if column_letter in template_ws2.column_dimensions:
+                            worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
+                                column_letter].width
 
-                        # 复制单元格值
-                        target_cell.value = template_cell.value
+                    # 复制Sheet2的行高
+                    for row in range(1, 8):  # 复制前7行的行高
+                        worksheet2.row_dimensions[row].height = template_ws2.row_dimensions[row].height
 
-                        # 复制单元格格式
-                        if template_cell.has_style:
-                            # 复制字体
-                            target_cell.font = template_cell.font.copy()
-                            # 复制边框
-                            target_cell.border = template_cell.border.copy()
-                            # 复制填充
-                            target_cell.fill = template_cell.fill.copy()
-                            # 复制数字格式
-                            target_cell.number_format = template_cell.number_format
-                            # 复制保护
-                            target_cell.protection = template_cell.protection.copy()
-                            # 复制对齐方式
-                            target_cell.alignment = template_cell.alignment.copy()
+                    current_row = 8
 
-                # 复制Sheet2的合并单元格
-                for merged_range in template_ws2.merged_cells.ranges:
-                    if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
-                        worksheet2.merge_cells(str(merged_range))
+                    for feEM in equipment_dict[key]:
+                        tBM, tScore, tType = fuzzy_match_EM(feEM)
+                        tResult = extract_specifications(feEM.specification)
 
-                # 复制Sheet2的列宽
-                for col in range(1, len(template_ws2[1]) + 1):
-                    column_letter = get_column_letter(col)
-                    if column_letter in template_ws2.column_dimensions:
-                        worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
-                            column_letter].width
+                        if tScore > 0:
+                            for feDN in tResult["管径"]:
+                                if Cell.value is None:
+                                    Cell.value = ""
+                                Cell.value = str(Cell.value) + " " + str(feDN)
 
-                # 复制Sheet2的行高
-                for row in range(1, 8):  # 复制前7行的行高
-                    worksheet2.row_dimensions[row].height = template_ws2.row_dimensions[row].height
+                            if tBM in Atlas_PipeFittingsQ235A.keys():
+                                if len(tResult["管径"]) == 0:
+                                    continue
+                                dn1 = tResult["管径"][0]
+                                dn2 = dn1
+                                if len(tResult["管径"]) > 1:
+                                    dn2 = tResult["管径"][1]
+                                tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
+                                value = tDic[find_closest_key(dn2, tDic)]
+                                Cell = worksheet2.cell(row=current_row, column=14)
+                                Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
+                                Cell = worksheet2.cell(row=current_row, column=15)
+                                Cell.value = str(value)
 
-                current_row = 8
-
-                for feEM in equipment_dict[key]:
-                    Cell = worksheet2.cell(row=current_row, column=3)
-                    Cell.value = feEM.name
-                    Cell = worksheet2.cell(row=current_row, column=4)
-                    Cell.value = feEM.specification
-                    Cell = worksheet2.cell(row=current_row, column=5)
-                    Cell.value = feEM.unit
-                    Cell = worksheet2.cell(row=current_row, column=6)
-                    Cell.value = feEM.quantity
-                    Cell = worksheet2.cell(row=current_row, column=9)
-                    Cell.value = feEM.material
-                    tBM, tScore, tType = fuzzy_match_EM(feEM)
-                    tResult = extract_specifications(feEM.specification)
-
-                    if key == "污泥浓缩池及配泥井":
-                        print(feEM.name, tBM, tScore, tType)
-
-                    if tScore > 0:
+                            if tType == "阀门" and tResult["功率"] == 0.0:
+                                if len(tResult["管径"]) > 0:
+                                    if tResult["管径"][0] >= 600:
+                                        tType = "设备"
+                                    else:
+                                        tType = "管配件"
+                                else:
+                                    tType = "材料"
+                        Cell = worksheet2.cell(row=current_row, column=16)
+                        if tResult["功率"] > 0:
+                            tType = "设备"
+                        if tType == "":
+                            tType = "材料"
+                        Cell.value = str(tType)
+                        if tType not in category[feSheetname]:
+                            Cell = worksheet2.cell(row=current_row, column=14)
+                            cell.value = ""
+                            Cell = worksheet2.cell(row=current_row, column=15)
+                            cell.value = ""
+                            Cell = worksheet2.cell(row=current_row, column=16)
+                            cell.value = ""
+                            continue
+                        Cell = worksheet2.cell(row=current_row, column=3)
+                        Cell.value = feEM.name
+                        Cell = worksheet2.cell(row=current_row, column=4)
+                        Cell.value = feEM.specification
+                        Cell = worksheet2.cell(row=current_row, column=5)
+                        Cell.value = feEM.unit
+                        Cell = worksheet2.cell(row=current_row, column=6)
+                        Cell.value = feEM.quantity
+                        Cell = worksheet2.cell(row=current_row, column=9)
+                        Cell.value = feEM.material
                         Cell = worksheet2.cell(row=current_row, column=10)
                         Cell.value = tBM
                         Cell = worksheet2.cell(row=current_row, column=11)
                         Cell.value = tScore
                         Cell = worksheet2.cell(row=current_row, column=12)
-                        for feDN in tResult["管径"]:
-                            if Cell.value is None:
-                                Cell.value = ""
-                            Cell.value = str(Cell.value) + " " + str(feDN)
                         Cell = worksheet2.cell(row=current_row, column=13)
                         Cell.value = str(tResult["长度"]) + " " + str(tResult["长度单位"])
-                        if tBM in Atlas_PipeFittingsQ235A.keys():
-                            if len(tResult["管径"]) == 0:
-                                continue
-                            dn1 = tResult["管径"][0]
-                            dn2 = dn1
-                            if len(tResult["管径"]) > 1:
-                                dn2 = tResult["管径"][1]
-                            tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
-                            value = tDic[find_closest_key(dn2, tDic)]
-                            Cell = worksheet2.cell(row=current_row, column=14)
-                            Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
-                            Cell = worksheet2.cell(row=current_row, column=15)
-                            Cell.value = str(value)
 
-                        if tType == "阀门" and tResult["功率"] == 0.0:
-                            if len(tResult["管径"]) > 0:
-                                if tResult["管径"][0] >= 600:
-                                    tType = "设备"
-                                else:
-                                    tType = "管配件"
-                            else:
-                                tType = "材料"
-                    Cell = worksheet2.cell(row=current_row, column=16)
-                    if tResult["功率"] > 0:
-                        tType = "设备"
-                    if tType == "":
-                        tType = "材料"
-                    Cell.value = str(tType)
-
-                    current_row += 1
+                        current_row += 1
 
 
         return output_path
