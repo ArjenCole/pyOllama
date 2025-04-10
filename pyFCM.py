@@ -2,12 +2,21 @@ from fuzzychinese import FuzzyChineseMatch
 from fuzzywuzzy import process
 import re  # 正则表达式
 
+
 # import pandas as pd
 
 # 定义目标词汇列表
 TARGET_WORDS = ['工程或费用名称', '建筑工程', '安装工程', '设备及工器具购置费', '其他费用', '合计', '单位', '数量',
                 '单位价值（元）', '备注',
                 '项', '目', '节', '细目', '序号']
+Atlas_PipeFittingsQ235A = {}  # 管配件重量表
+Atlas_Valve = {}  # 阀门价格表
+def init_atlas(pAtlas_PipeFittingsQ235A, pAtlas_valve):
+    global Atlas_PipeFittingsQ235A, Atlas_Valve
+    Atlas_PipeFittingsQ235A = pAtlas_PipeFittingsQ235A
+    Atlas_Valve = pAtlas_valve
+    print(Atlas_PipeFittingsQ235A.keys())
+
 
 
 def fuzzy_match(p_raw_word, p_target_words=None):
@@ -48,19 +57,10 @@ def test_para(para):
 
 
 material_fittings = ["Q235A", "SS304", "橡胶", "PE100", "PVC-U", "nan"]
-# 定义管配件名称列表
-pipe_Q235A_fittings = [
-    "直管", "套管", "柔性防水套管A型Ⅰ型", "柔性防水套管A型Ⅱ型", "柔性防水套管B型Ⅰ型",
-    "柔性防水套管B型Ⅱ型", "法兰套管A型Ⅰ型", "法兰套管A型Ⅱ型", "法兰套管B型Ⅰ型",
-    "法兰套管B型Ⅱ型", "刚性防水套管A型", "刚性防水套管B型", "刚性防水套管C型",
-    "刚性防水翼环", "90°弯头", "60°弯头", "45°弯头", "30°弯头", "22°30′弯头",
-    "90°异径弯头", "喇叭口", "吸水喇叭管", "喇叭管支架", "支架", "三通", "四通",
-    "异径管", "偏心异径管"
-]
+material_type = ["管配件", "阀门", "设备", "材料"]
 
 
-
-def fuzzy_match_pipe(pEquipmentMaterial):
+def fuzzy_match_EM(pEquipmentMaterial):
     """
     输入一个字符串，返回最匹配的管配件名称及其相似度得分。
 
@@ -72,12 +72,19 @@ def fuzzy_match_pipe(pEquipmentMaterial):
     """
     # 使用 fuzzywuzzy 的 process.extractOne 方法进行模糊匹配
     best_match_material, score = process.extractOne(pEquipmentMaterial.material, material_fittings)
-    best_match = ""
-    score = 0
+    rtBest_match = ""
+    rtScore = 0
     if best_match_material == "Q235A" or best_match_material == "SS304":
-        best_match, score = process.extractOne(pEquipmentMaterial.name, pipe_Q235A_fittings)
+        print(Atlas_PipeFittingsQ235A.keys())
+        match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsQ235A.keys())
+        if match_result is not None:  # 检查是否找到匹配
+            best_match, score = match_result
+            print(best_match, score)
+            if score > rtScore:
+                rtBest_match = best_match
+                rtScore = score
 
-    return best_match, score
+    return rtBest_match, rtScore
 
 
 def extract_specifications(spec_string):

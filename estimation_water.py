@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
 from openpyxl.utils import get_column_letter
 
-from pyFCM import fuzzy_match_pipe, extract_specifications
+from pyFCM import fuzzy_match_EM, extract_specifications, init_atlas
 
 # 配置上传文件存储路径
 UPLOAD_FOLDER = 'uploads/estimation_water'
@@ -32,14 +32,13 @@ class EquipmentMaterial:
     remarks: str  # 备注
 
 
-weight_dict_Q235A = {}
+Atlas_PipeFittingsQ235A = {}  # 管配件重量表
+Atlas_Valve = {}  # 阀门价格表
 
 # 读取重量表
 def atlas():
     df = pd.read_excel("templates/250407管配件重量表.xlsx", header=0, index_col=0)
-
     # 创建一个字典，用于存储每种管配件的每米重量
-
     # 遍历表格，提取每米重量
     for index, row in df.iterrows():
         # 遍历 row 中的每一个单元格
@@ -53,8 +52,20 @@ def atlas():
             else:
                 if pd.notna(value):  # 使用 pd.notna() 判断值是否不是 NaN
                     # print(f"{column_name} DN{dn1} ×DN{dn2}: {value}")
-                    weight_dict_Q235A[column_name] = {dn1: {dn2: value}}
+                    Atlas_PipeFittingsQ235A[column_name] = {dn1: {dn2: value}}
                     # print(weight_dict_Q235A[column_name])
+    # 读取阀门价格表
+    df = pd.read_excel("templates/250410阀门.xlsx", header=0, index_col=0)
+    for index, row in df.iterrows():
+        dn1 = 0
+        for column_name, value in row.items():
+            if column_name == "管径1":
+                dn1 = int(value)
+            else:
+                if pd.notna(value):
+                    Atlas_Valve[column_name] = {dn1: value}
+
+    init_atlas(Atlas_PipeFittingsQ235A, Atlas_Valve)
 
 
 def find_closest_key(random_number, dictionary):
@@ -339,7 +350,9 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell.value = feEM.quantity
                     Cell = worksheet2.cell(row=current_row, column=9)
                     Cell.value = feEM.material
-                    tBM, tScore = fuzzy_match_pipe(feEM)
+                    print(feEM.name)
+                    tBM, tScore = fuzzy_match_EM(feEM)
+                    print(tBM, tScore)
 
                     if tScore > 0:
                         Cell = worksheet2.cell(row=current_row, column=10)
@@ -354,7 +367,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             Cell.value = str(Cell.value) + " " + str(feDN)
                         Cell = worksheet2.cell(row=current_row, column=13)
                         Cell.value = str(tResult["长度"]) + " " + str(tResult["单位"])
-                        if tBM in weight_dict_Q235A.keys():
+                        if tBM in Atlas_PipeFittingsQ235A.keys():
                             # print(tResult["管径"],len(tResult["管径"]))
                             if len(tResult["管径"]) == 0:
                                 continue
@@ -362,7 +375,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             dn2 = dn1
                             if len(tResult["管径"]) > 1:
                                 dn2 = tResult["管径"][1]
-                            tDic = weight_dict_Q235A[tBM][find_closest_key(dn1, weight_dict_Q235A[tBM])]
+                            tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
                             value = tDic[find_closest_key(dn2, tDic)]
                             Cell = worksheet2.cell(row=current_row, column=14)
                             Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
