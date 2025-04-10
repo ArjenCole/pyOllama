@@ -209,11 +209,9 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
             # 先写入空的DataFrame以创建工作表
             df.to_excel(writer, sheet_name='总表', index=False)
-
             # 获取工作簿和工作表对象
             workbook = writer.book
             worksheet = writer.sheets['总表']
-
             # 复制模板的前7行格式
             for row in range(1, 8):  # 复制前7行
                 for col in range(1, len(template_ws[1]) + 1):
@@ -243,21 +241,17 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             for merged_range in template_ws.merged_cells.ranges:
                 if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
                     worksheet.merge_cells(str(merged_range))
-
             # 复制列宽
             for col in range(1, len(template_ws[1]) + 1):
                 column_letter = get_column_letter(col)
                 worksheet.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
                 # print(column_letter, template_ws.column_dimensions[column_letter].width)
-
             # 复制行高
             for row in range(1, 8):  # 复制前7行的行高
                 worksheet.row_dimensions[row].height = template_ws.row_dimensions[row].height
-
             # 找到"工程或费用名称"列的索引
             name_col_idx = 3
             sum_col_idx = 8
-
             # 从第8行开始写入数据
             current_row = 8
 
@@ -291,55 +285,58 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             cell = worksheet.cell(row=7, column=8)
             cell.value = "=SUM(D7:G7)"
 
-            # 创建第二个工作表（设备材料表）
-            template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
-            worksheet2 = workbook.create_sheet('设备材料表')  # 创建新的工作表
 
-            # 复制Sheet2的前7行格式
-            for row in range(1, 8):  # 复制前7行
+
+            for key in equipment_dict.keys():
+                # 创建第二个工作表（设备材料表）
+                template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
+                worksheet2 = workbook.create_sheet(key)  # 创建新的工作表
+
+                # 复制Sheet2的前7行格式
+                for row in range(1, 8):  # 复制前7行
+                    for col in range(1, len(template_ws2[1]) + 1):
+                        # 获取模板单元格
+                        template_cell = template_ws2.cell(row=row, column=col)
+                        # 获取目标单元格
+                        target_cell = worksheet2.cell(row=row, column=col)
+
+                        # 复制单元格值
+                        target_cell.value = template_cell.value
+
+                        # 复制单元格格式
+                        if template_cell.has_style:
+                            # 复制字体
+                            target_cell.font = template_cell.font.copy()
+                            # 复制边框
+                            target_cell.border = template_cell.border.copy()
+                            # 复制填充
+                            target_cell.fill = template_cell.fill.copy()
+                            # 复制数字格式
+                            target_cell.number_format = template_cell.number_format
+                            # 复制保护
+                            target_cell.protection = template_cell.protection.copy()
+                            # 复制对齐方式
+                            target_cell.alignment = template_cell.alignment.copy()
+
+                # 复制Sheet2的合并单元格
+                for merged_range in template_ws2.merged_cells.ranges:
+                    if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
+                        worksheet2.merge_cells(str(merged_range))
+
+                # 复制Sheet2的列宽
                 for col in range(1, len(template_ws2[1]) + 1):
-                    # 获取模板单元格
-                    template_cell = template_ws2.cell(row=row, column=col)
-                    # 获取目标单元格
-                    target_cell = worksheet2.cell(row=row, column=col)
+                    column_letter = get_column_letter(col)
+                    if column_letter in template_ws2.column_dimensions:
+                        worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
+                            column_letter].width
 
-                    # 复制单元格值
-                    target_cell.value = template_cell.value
+                # 复制Sheet2的行高
+                for row in range(1, 8):  # 复制前7行的行高
+                    worksheet2.row_dimensions[row].height = template_ws2.row_dimensions[row].height
 
-                    # 复制单元格格式
-                    if template_cell.has_style:
-                        # 复制字体
-                        target_cell.font = template_cell.font.copy()
-                        # 复制边框
-                        target_cell.border = template_cell.border.copy()
-                        # 复制填充
-                        target_cell.fill = template_cell.fill.copy()
-                        # 复制数字格式
-                        target_cell.number_format = template_cell.number_format
-                        # 复制保护
-                        target_cell.protection = template_cell.protection.copy()
-                        # 复制对齐方式
-                        target_cell.alignment = template_cell.alignment.copy()
+                current_row = 8
 
-            # 复制Sheet2的合并单元格
-            for merged_range in template_ws2.merged_cells.ranges:
-                if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
-                    worksheet2.merge_cells(str(merged_range))
-
-            # 复制Sheet2的列宽
-            for col in range(1, len(template_ws2[1]) + 1):
-                column_letter = get_column_letter(col)
-                if column_letter in template_ws2.column_dimensions:
-                    worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
-                        column_letter].width
-
-            # 复制Sheet2的行高
-            for row in range(1, 8):  # 复制前7行的行高
-                worksheet2.row_dimensions[row].height = template_ws2.row_dimensions[row].height
-
-            current_row = 9
-            for feEMList in equipment_dict.values():
-                for feEM in feEMList:
+                for feEM in equipment_dict[key]:
                     Cell = worksheet2.cell(row=current_row, column=3)
                     Cell.value = feEM.name
                     Cell = worksheet2.cell(row=current_row, column=4)
@@ -351,13 +348,16 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell = worksheet2.cell(row=current_row, column=9)
                     Cell.value = feEM.material
                     tBM, tScore, tType = fuzzy_match_EM(feEM)
+                    tResult = extract_specifications(feEM.specification)
+
+                    if key == "污泥浓缩池及配泥井":
+                        print(feEM.name, tBM, tScore, tType)
 
                     if tScore > 0:
                         Cell = worksheet2.cell(row=current_row, column=10)
                         Cell.value = tBM
                         Cell = worksheet2.cell(row=current_row, column=11)
                         Cell.value = tScore
-                        tResult = extract_specifications(feEM.specification)
                         Cell = worksheet2.cell(row=current_row, column=12)
                         for feDN in tResult["管径"]:
                             if Cell.value is None:
@@ -384,7 +384,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 if tResult["管径"][0] >= 600:
                                     tType = "设备"
                                 else:
-                                    tType = "材料"
+                                    tType = "管配件"
                             else:
                                 tType = "材料"
                     Cell = worksheet2.cell(row=current_row, column=16)
@@ -395,6 +395,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell.value = str(tType)
 
                     current_row += 1
+
 
         return output_path
 
