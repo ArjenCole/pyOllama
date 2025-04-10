@@ -83,7 +83,7 @@ def fuzzy_match_EM(pEquipmentMaterial):
 
 
 def extract_specifications(spec_string):  # 从规格字符串中提取管径和长度参数 参数例 "DN1=1200,DN2=500,DN3=500""DN1400，L=9000"
-    result = {"管径": [], "长度": 0, "单位": ""}  # 初始化结果字典
+    result = {"管径": [], "长度": 0, "长度单位": "", "功率单位": 0.0}  # 初始化结果字典
     # 提取管径
     diameter_pattern = re.compile(r'DN\d*\s*=\s*(\d+)|DN(\d+)')  # 匹配模式：DN后可能跟标识符（如DN1），然后是等号和数字
     diameter_matches = diameter_pattern.findall(spec_string)
@@ -100,6 +100,14 @@ def extract_specifications(spec_string):  # 从规格字符串中提取管径和
         length_value = int(length_match.group(2))
         length_unit = length_match.group(3) if length_match.group(3) else "mm"  # 默认单位为 mm
         result["长度"] = float(length_value)
-        result["单位"] = length_unit
+        result["长度单位"] = length_unit
 
+    power_pattern = re.compile(r"N=(\d+(\.\d+)?)(kW|W)")
+    power_match = power_pattern.search(spec_string)
+    if power_match:
+        # 提取功率值
+        power_value = power_match.group(1)  # 匹配的功率值
+        power_unit = power_match.group(3)  # 匹配的单位
+        result["功率"] = float(power_value)
+        result["功率单位"] = power_unit
     return result

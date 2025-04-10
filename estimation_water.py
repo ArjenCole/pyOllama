@@ -352,7 +352,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell.value = feEM.material
                     print(feEM.name)
                     tBM, tScore, tType = fuzzy_match_EM(feEM)
-                    print(tBM, tScore)
+                    print(tBM, tScore, tType)
 
                     if tScore > 0:
                         Cell = worksheet2.cell(row=current_row, column=10)
@@ -360,6 +360,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         Cell = worksheet2.cell(row=current_row, column=11)
                         Cell.value = tScore
                         tResult = extract_specifications(feEM.specification)
+                        # print(tResult)
                         Cell = worksheet2.cell(row=current_row, column=12)
                         for feDN in tResult["管径"]:
                             if Cell.value is None:
@@ -383,7 +384,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             Cell.value = str(value)
                         Cell = worksheet2.cell(row=current_row, column=16)
 
-                        if tType == "阀门":
+                        if tType == "阀门" and tResult["功率"] == 0.0:
                             if len(tResult["管径"]) > 0:
                                 if tResult["管径"][0] >= 600:
                                     tType = "设备"
@@ -391,7 +392,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                     tType = "材料"
                             else:
                                 tType = "材料"
-
+                        if tResult["功率"] > 0:
+                            tType = "设备"
                         Cell.value = str(tType)
 
                     current_row += 1
