@@ -51,9 +51,15 @@ def atlas():
                 dn2 = int(value)
             else:
                 if pd.notna(value):  # 使用 pd.notna() 判断值是否不是 NaN
-                    # print(f"{column_name} DN{dn1} ×DN{dn2}: {value}")
-                    Atlas_PipeFittingsQ235A[column_name] = {dn1: {dn2: value}}
-                    # print(weight_dict_Q235A[column_name])
+                    # 如果 column_name 不在 Atlas_PipeFittingsQ235A 中，初始化一个空字典
+                    if column_name not in Atlas_PipeFittingsQ235A:
+                        Atlas_PipeFittingsQ235A[column_name] = {}
+                    # 如果 dn1 不在 Atlas_PipeFittingsQ235A[column_name] 中，初始化一个空字典
+                    if dn1 not in Atlas_PipeFittingsQ235A[column_name]:
+                        Atlas_PipeFittingsQ235A[column_name][dn1] = {}
+                    # 存储 dn2 和对应的重量
+                    Atlas_PipeFittingsQ235A[column_name][dn1][dn2] = value
+
     # 读取阀门价格表
     df = pd.read_excel("templates/250410阀门.xlsx", header=0, index_col=0)
     for index, row in df.iterrows():
@@ -342,8 +348,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 if len(tResult["管径"]) > 1:
                                     dn2 = tResult["管径"][1]
                                 tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
-                                tStr = Atlas_PipeFittingsQ235A["法兰"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])]
-                                tValue = f"={tDic[find_closest_key(dn2, tDic)]}+{tFlange}*{tStr[find_closest_key(dn1, tStr)]}"
+                                tFlangeDn1 = find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])
+                                # print(feEM.name,tFlangeDn1)
+                                tFlangeWeight = Atlas_PipeFittingsQ235A["法兰"][tFlangeDn1][tFlangeDn1]
+                                tValue = f"={tDic[find_closest_key(dn2, tDic)]}+{tFlange}*{tFlangeWeight}"
 
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
@@ -387,7 +395,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         Cell.value = str(tResult["长度"]) + " " + str(tResult["长度单位"])
                         Cell = worksheet2.cell(row=current_row, column=15)
                         Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
-                        Cell = worksheet2.cell(row=current_row, column=16)
+                        Cell = worksheet2.cell(row=current_row, column=7)
                         Cell.value = str(tValue)
                         Cell = worksheet2.cell(row=current_row, column=17)
                         Cell.value = str(tType)
