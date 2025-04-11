@@ -367,28 +367,65 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         Cell.value = feEM.unit
                         Cell = worksheet2.cell(row=current_row, column=6)
                         Cell.value = feEM.quantity
-                        Cell = worksheet2.cell(row=current_row, column=9)
-                        Cell.value = feEM.material
                         Cell = worksheet2.cell(row=current_row, column=10)
-                        Cell.value = tBM
+                        Cell.value = feEM.material
                         Cell = worksheet2.cell(row=current_row, column=11)
-                        Cell.value = tScore
+                        Cell.value = tBM
                         Cell = worksheet2.cell(row=current_row, column=12)
+                        Cell.value = tScore
+                        Cell = worksheet2.cell(row=current_row, column=13)
                         for feDN in tResult["管径"]:
                             if Cell.value is None:
                                 Cell.value = ""
                             Cell.value = str(Cell.value) + " " + str(feDN)
-                        Cell = worksheet2.cell(row=current_row, column=13)
-                        Cell.value = str(tResult["长度"]) + " " + str(tResult["长度单位"])
                         Cell = worksheet2.cell(row=current_row, column=14)
-                        Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
+                        Cell.value = str(tResult["长度"]) + " " + str(tResult["长度单位"])
                         Cell = worksheet2.cell(row=current_row, column=15)
-                        Cell.value = str(tValue)
+                        Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
                         Cell = worksheet2.cell(row=current_row, column=16)
+                        Cell.value = str(tValue)
+                        Cell = worksheet2.cell(row=current_row, column=17)
                         Cell.value = str(tType)
+
+                        worksheet2.row_dimensions[current_row].height = template_ws2.row_dimensions[8].height
+                        for feCol in range(1, 9):
+                            Cell = worksheet2.cell(row=current_row, column=feCol)
+                            template_cell = template_ws2.cell(row=8, column=feCol)
+                            Cell.font = template_cell.font.copy()  # 复制字体
+                            Cell.border = template_cell.border.copy()  # 复制边框
+                            Cell.fill = template_cell.fill.copy()  # 复制填充
+                            Cell.number_format = template_cell.number_format  # 复制数字格式
+                            Cell.protection = template_cell.protection.copy()  # 复制保护
+                            Cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+
                         current_row += 1
 
 
+                    for feRow in range(current_row, current_row + 7):
+                        worksheet2.row_dimensions[feRow].height = template_ws2.row_dimensions[23].height
+                        for feCol in range(1, 9):
+                            Cell = worksheet2.cell(row=feRow, column=feCol)
+                            template_cell = template_ws2.cell(row=feRow - current_row + 23, column=feCol)
+                            Cell.font = template_cell.font.copy()  # 复制字体
+                            Cell.border = template_cell.border.copy()  # 复制边框
+                            Cell.fill = template_cell.fill.copy()  # 复制填充
+                            Cell.number_format = template_cell.number_format  # 复制数字格式
+                            Cell.protection = template_cell.protection.copy()  # 复制保护
+                            Cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+                            if feCol in [3, 4]:
+                                Cell.value = template_cell.value
+                            elif feCol == 5:
+                                if feRow - current_row not in [0, 6]:
+                                    Cell.value = "元"
+                            elif feCol == 8:
+                                if feRow - current_row == 1:
+                                    Cell.value = f"=SUM(H8:H{current_row - 1})"
+                                elif feRow - current_row in [2, 4]:
+                                    Cell.value = f"=H{feRow - 1}*D{feRow}"
+                                elif feRow - current_row in [3, 5]:
+                                    Cell.value = f"=SUM(H{feRow - 2}:H{feRow - 1})"
+                    Cell = worksheet2.cell(row=4, column=2)
+                    Cell.value = f'="估算价值(元)："&ROUND(H{current_row + 5},0)'
         return output_path
 
     except Exception as e:
