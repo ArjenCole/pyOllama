@@ -263,13 +263,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 cell = worksheet.cell(row=current_row, column=sum_col_idx)
                 cell.value = f"=SUM(D{current_row}:G{current_row})"
                 row_formate(worksheet, template_ws, current_row)
-
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "土建")
-
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
-
                 current_row += 1
                 cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
 
@@ -284,21 +281,17 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 cell.value = f"=SUM({get_column_letter(feCol)}{7 + 1}:{get_column_letter(feCol)}{current_row})"
             cell = worksheet.cell(row=7, column=8)
             cell.value = "=SUM(D7:G7)"
-
+# =============================================设备材料表================================================================
             category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
             for key in equipment_dict.keys():
                 for feSheetname in category.keys():
                     # 创建第二个工作表（设备材料表）
                     template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
                     worksheet2 = workbook.create_sheet(key + feSheetname)  # 创建新的工作表
-
-                    # 复制Sheet2的前7行格式
-                    for row in range(1, 8):  # 复制前7行
+                    for row in range(1, 8):  # 复制Sheet2的前7行格式
                         for col in range(1, len(template_ws2[1]) + 1):
-                            # 获取模板单元格
-                            template_cell = template_ws2.cell(row=row, column=col)
-                            # 获取目标单元格
-                            target_cell = worksheet2.cell(row=row, column=col)
+                            template_cell = template_ws2.cell(row=row, column=col)  # 获取模板单元格
+                            target_cell = worksheet2.cell(row=row, column=col)  # 获取目标单元格
 
                             # 复制单元格值
                             if row == 3 and col == 2:
@@ -308,18 +301,12 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
                             # 复制单元格格式
                             if template_cell.has_style:
-                                # 复制字体
-                                target_cell.font = template_cell.font.copy()
-                                # 复制边框
-                                target_cell.border = template_cell.border.copy()
-                                # 复制填充
-                                target_cell.fill = template_cell.fill.copy()
-                                # 复制数字格式
-                                target_cell.number_format = template_cell.number_format
-                                # 复制保护
-                                target_cell.protection = template_cell.protection.copy()
-                                # 复制对齐方式
-                                target_cell.alignment = template_cell.alignment.copy()
+                                target_cell.font = template_cell.font.copy()  # 复制字体
+                                target_cell.border = template_cell.border.copy()  # 复制边框
+                                target_cell.fill = template_cell.fill.copy()  # 复制填充
+                                target_cell.number_format = template_cell.number_format  # 复制数字格式
+                                target_cell.protection = template_cell.protection.copy()  # 复制保护
+                                target_cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
 
                     # 复制Sheet2的合并单元格
                     for merged_range in template_ws2.merged_cells.ranges:
