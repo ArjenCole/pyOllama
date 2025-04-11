@@ -333,11 +333,18 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     current_row = 8
 
                     for feEM in equipment_dict[key]:
-                        tBM, tFlange, tScore, tType = fuzzy_match_EM(feEM)
+                        tBM, tFlange, tMaterial, tScore, tType = fuzzy_match_EM(feEM)
                         tResult = extract_specifications(feEM.specification)
                         dn1 = 0
                         dn2 = 0
                         tValue = ""
+                        tPrice = 1
+                        if tMaterial in ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E"]:
+                            tPrice = 1
+                        elif tMaterial in ["SS304"]:
+                            tPrice = 3
+                        elif tMaterial in ["SS316"]:
+                            tPrice = 5
 
                         if tScore > 0:
                             if tBM in Atlas_PipeFittingsQ235A.keys():
@@ -349,9 +356,9 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                     dn2 = tResult["管径"][1]
                                 tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
                                 tFlangeDn1 = find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])
-                                # print(feEM.name,tFlangeDn1)
                                 tFlangeWeight = Atlas_PipeFittingsQ235A["法兰"][tFlangeDn1][tFlangeDn1]
-                                tValue = f"={tDic[find_closest_key(dn2, tDic)]}+{tFlange}*{tFlangeWeight}"
+                                tValue = (f"={tDic[find_closest_key(dn2, tDic)]}/1000*K{tPrice}"
+                                          f"+{tFlange}*{tFlangeWeight}/1000*K{tPrice+1}")
 
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
