@@ -359,6 +359,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             tType = "材料"
                         if tType not in category[feSheetname]:
                             continue
+                        Cell = worksheet2.cell(row=current_row, column=2)
+                        Cell.value = current_row - 7
                         Cell = worksheet2.cell(row=current_row, column=3)
                         Cell.value = feEM.name
                         Cell = worksheet2.cell(row=current_row, column=4)
@@ -367,6 +369,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         Cell.value = feEM.unit
                         Cell = worksheet2.cell(row=current_row, column=6)
                         Cell.value = feEM.quantity
+                        Cell = worksheet2.cell(row=current_row, column=8)
+                        Cell.value = f"=F{current_row}*G{current_row}"
                         Cell = worksheet2.cell(row=current_row, column=10)
                         Cell.value = feEM.material
                         Cell = worksheet2.cell(row=current_row, column=11)
@@ -419,7 +423,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                     Cell.value = "元"
                             elif feCol == 8:
                                 if feRow - current_row == 1:
-                                    Cell.value = f"=SUM(H8:H{current_row - 1})"
+                                    Cell.value = f"=SUM(H8:H{feRow - 1})"
                                 elif feRow - current_row in [2, 4]:
                                     Cell.value = f"=H{feRow - 1}*D{feRow}"
                                 elif feRow - current_row in [3, 5]:
