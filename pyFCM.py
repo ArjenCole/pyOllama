@@ -60,16 +60,23 @@ material_type = ["管配件", "阀门", "设备", "材料"]
 
 
 def fuzzy_match_EM(pEquipmentMaterial):
-    best_match_material, score = process.extractOne(pEquipmentMaterial.material, material_fittings)
+    best_match_material, score = process.extractOne(pEquipmentMaterial.material, material_fittings)  # 先匹配材质
     rtBest_match = ""
+    rtFlange = 0
     rtScore = 0
     rtType = ""
+    flange_pattern = re.compile(r"(单法|双法|二法|三法|四法)")  # 定义正则表达式匹配法兰数量
     if best_match_material == "Q235A" or best_match_material == "SS304":
         match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsQ235A.keys())
         if match_result is not None:  # 检查是否找到匹配
             best_match, score = match_result
             if score > rtScore:
                 rtBest_match = best_match
+                flange_match = flange_pattern.search(pEquipmentMaterial.name)
+                if flange_match:
+                    flange_text = flange_match.group(1)
+                    # 将中文数字转换为阿拉伯数字
+                    rtFlange = {"单法": 1, "双法": 2, "二法": 2, "三法": 3, "四法": 4}.get(flange_text, 0)
                 rtScore = score
                 rtType = "管配件"
     match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
@@ -79,7 +86,7 @@ def fuzzy_match_EM(pEquipmentMaterial):
             rtBest_match = best_match
             rtScore = score
             rtType = "阀门"
-    return rtBest_match, rtScore, rtType
+    return rtBest_match, rtFlange, rtScore, rtType
 
 
 def extract_specifications(spec_string):  # 从规格字符串中提取管径和长度参数 参数例 "DN1=1200,DN2=500,DN3=500""DN1400，L=9000"
@@ -102,12 +109,13 @@ def extract_specifications(spec_string):  # 从规格字符串中提取管径和
         result["长度"] = float(length_value)
         result["长度单位"] = length_unit
 
+    # 提取功率值
     power_pattern = re.compile(r"(\d+(\.\d+)?)(kW|W)", re.IGNORECASE)
     power_match = power_pattern.search(spec_string)
     if power_match:
-        # 提取功率值
         power_value = power_match.group(1)  # 匹配的功率值
         power_unit = power_match.group(3)  # 匹配的单位
         result["功率"] = float(power_value)
         result["功率单位"] = power_unit
+
     return result

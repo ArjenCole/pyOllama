@@ -327,7 +327,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     current_row = 8
 
                     for feEM in equipment_dict[key]:
-                        tBM, tScore, tType = fuzzy_match_EM(feEM)
+                        tBM, tFlange, tScore, tType = fuzzy_match_EM(feEM)
                         tResult = extract_specifications(feEM.specification)
                         dn1 = 0
                         dn2 = 0
@@ -342,7 +342,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 if len(tResult["管径"]) > 1:
                                     dn2 = tResult["管径"][1]
                                 tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
-                                tValue = tDic[find_closest_key(dn2, tDic)]
+                                tStr = Atlas_PipeFittingsQ235A["法兰"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])]
+                                tValue = f"={tDic[find_closest_key(dn2, tDic)]}+{tFlange}*{tStr[find_closest_key(dn1, tStr)]}"
 
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
