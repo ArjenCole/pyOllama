@@ -518,33 +518,18 @@ def init_routes(app, socketio):
             # 保存文件
             file.save(file_path)
             # 发送进度更新
-            socketio.emit('progress', {
-                'progress': 10,
-                'stage': f'文件 {file.filename} 保存成功！',
-                'sessionId': session_id
-            })
-            socketio.sleep(0)
+            _stage_update(10, f'文件 {file.filename} 保存成功！', session_id)
 
             # 处理Excel文件
             equipment_dict = process_excel_file(file_path)
             # 发送进度更新
-            socketio.emit('progress', {
-                'progress': 10,
-                'stage': f'文件 {file.filename} 读取完成！',
-                'sessionId': session_id
-            })
-            socketio.sleep(0)
+            _stage_update(30, f'文件 {file.filename} 读取完成，数据处理中', session_id)
 
             # 写入新的Excel文件
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名
 
             # 发送进度更新
-            socketio.emit('progress', {
-                'progress': 100,
-                'stage': f'文件 {file.filename} 上传成功！\n保存为: {new_filename}\n成功读取设备材料表\n已生成输出文件: {os.path.basename(output_path)}',
-                'sessionId': session_id
-            })
-            socketio.sleep(0)
+            _stage_update(100, f'文件 {file.filename} 上传成功！\n保存为: {new_filename}\n成功读取设备材料表\n已生成输出文件: {os.path.basename(output_path)}', session_id)
 
             return jsonify({
                 'message': '文件上传成功',
@@ -569,13 +554,12 @@ def init_routes(app, socketio):
 
         except Exception as e:
             # 发送错误信息
-            socketio.emit('progress', {
-                'progress': 0,
-                'stage': f'上传失败: {str(e)}',
-                'sessionId': session_id
-            })
-            socketio.sleep(0)
+            _stage_update(0, f'上传失败: {str(e)}', session_id)
             return jsonify({'error': str(e)}), 500
+
+    def _stage_update(p_percent, p_stage, p_session_id=None):
+        socketio.emit('progress', {'progress': p_percent, 'stage': p_stage, 'sessionId': p_session_id})
+        time.sleep(0)
 
     @socketio.on('upload')
     def handle_upload(data):
