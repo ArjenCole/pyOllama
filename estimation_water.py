@@ -158,20 +158,34 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                     if pd.isna(unit):  # 跳过空行
                         continue
 
-                    # 创建设备材料对象
-                    equipment = EquipmentMaterial(
-                        name=str(row["名称"]),
-                        specification=str(row["规格"]),
-                        material=str(row["材料"]),
-                        unit=str(row["单位"]),
-                        quantity=float(row["数量"]) if pd.notna(row["数量"]) else 0.0,
-                        remarks=str(row["备注"]) if pd.notna(row["备注"]) else ""
-                    )
+                    tQList = str(row["数量"]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
+                    tSpStr = str(row["规格"])
+                    tSpList = []
+                    if len(tQList) > 1:
+                        tSpList = tSpStr.split('/')
+                    else:
+                        tSpList.append(str(row["规格"]))
 
-                    # 将设备材料添加到对应单体的列表中
-                    if unit not in result_dict:
-                        result_dict[unit] = []
-                    result_dict[unit].append(equipment)
+                    for i in range(0, len(tQList)):
+                        tQ = tQList[i]
+                        if i <= len(tSpList) - 1:
+                            tSp = tSpList[i]
+                        else:
+                            tSp = tSpList[len(tSpList) - 1]
+                        # 创建设备材料对象
+                        equipment = EquipmentMaterial(
+                            name=str(row["名称"]),
+                            specification=tSp,
+                            material=str(row["材料"]),
+                            unit=str(row["单位"]),
+                            quantity=tQ if pd.notna(tQ) else 0.0,
+                            remarks=str(row["备注"]) if pd.notna(row["备注"]) else ""
+                        )
+                        # 将设备材料添加到对应单体的列表中
+                        if unit not in result_dict:
+                            result_dict[unit] = []
+                        result_dict[unit].append(equipment)
+
 
                 return result_dict
 
@@ -290,7 +304,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 cell.value = f"=SUM({get_column_letter(feCol)}{7 + 1}:{get_column_letter(feCol)}{current_row})"
             cell = worksheet.cell(row=7, column=8)
             cell.value = "=SUM(D7:G7)"
-# =============================================设备材料表================================================================
+            # =============================================设备材料表================================================================
             category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
             for key in equipment_dict.keys():
                 for feSheetname in category.keys():
@@ -361,8 +375,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 tFlangeDn1 = find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])
                                 tFlangeWeight = Atlas_PipeFittingsQ235A["法兰"][tFlangeDn1][tFlangeDn1]
                                 tValue = (f"={tDic[find_closest_key(dn2, tDic)]}/1000*K{tPrice}"
-                                          f"+{tFlange}*{tFlangeWeight}/1000*K{tPrice+1}")
-
+                                          f"+{tFlange}*{tFlangeWeight}/1000*K{tPrice + 1}")
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
                                 if len(tResult["管径"]) > 0:
@@ -422,7 +435,6 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             Cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
 
                         current_row += 1
-
 
                     for feRow in range(current_row, current_row + 7):
                         worksheet2.row_dimensions[feRow].height = template_ws2.row_dimensions[23].height
