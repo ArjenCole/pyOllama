@@ -380,7 +380,11 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
                                 tFlangeDn1 = find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])
                                 tFlangeWeight = Atlas_PipeFittingsQ235A["法兰"][tFlangeDn1][tFlangeDn1]
-                                tValue = (f"={tDic[find_closest_key(dn2, tDic)]}/1000*K{tPrice}"
+                                tStr = ""
+                                if tBM == "穿墙套管":
+                                    tCircle = Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"])]
+                                    tStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
+                                tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tStr})/1000*K{tPrice}"
                                           f"+{tFlange}*{tFlangeWeight}/1000*K{tPrice + 1}")
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
