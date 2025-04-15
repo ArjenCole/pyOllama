@@ -21,8 +21,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
-# 初始化 SocketIO
-socketio = SocketIO()
+# socketio = SocketIO() 这里似乎没必要单独初始化这个定义，def init_routes(app, socketio): 这里作为参数传入了一个socketio
 
 
 @dataclass
