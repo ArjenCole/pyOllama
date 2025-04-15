@@ -152,11 +152,17 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                 # 找到目标表格
                 result_dict = {}
 
+                last_individual = ""
                 # 遍历每一行
                 for _, row in df_sheet.iterrows():
-                    unit = row["所属单体"]
-                    if pd.isna(unit):  # 跳过空行
-                        continue
+                    individual = row["所属单体"]
+                    if pd.isna(individual):  # 跳过空行
+                        if last_individual == "":
+                            continue
+                        else:
+                            individual = last_individual
+                    else:
+                        last_individual = individual
 
                     tQList = str(row["数量"]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
                     tSpStr = str(row["规格"])
@@ -182,9 +188,9 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                             remarks=str(row["备注"]) if pd.notna(row["备注"]) else ""
                         )
                         # 将设备材料添加到对应单体的列表中
-                        if unit not in result_dict:
-                            result_dict[unit] = []
-                        result_dict[unit].append(equipment)
+                        if individual not in result_dict:
+                            result_dict[individual] = []
+                        result_dict[individual].append(equipment)
 
 
                 return result_dict
