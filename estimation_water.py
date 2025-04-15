@@ -15,6 +15,7 @@ from pyFCM import fuzzy_match_EM, extract_specifications, init_atlas
 UPLOAD_FOLDER = 'uploads/estimation_water'
 OUTPUT_FOLDER = 'output/estimation_water'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
+UNIT_MAPPING_LEN_MM = {"米": 1000,"m": 1000, "dm": 100, "cm": 10, "mm": 1}
 
 # 确保上传目录和输出目录存在
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -380,11 +381,20 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
                                 tFlangeDn1 = find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])
                                 tFlangeWeight = Atlas_PipeFittingsQ235A["法兰"][tFlangeDn1][tFlangeDn1]
-                                tStr = ""
-                                if tBM == "穿墙套管":
-                                    tCircle = Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"])]
-                                    tStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
-                                tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tStr})/1000*K{tPrice}"
+                                tCircleStr = ""
+                                tLengthStr = ""
+
+                                if tBM in ["直管", "套管",
+                                           "穿墙套管", "柔性防水套管A型Ⅰ型", "柔性防水套管A型Ⅱ型", "柔性防水套管B型Ⅰ型",
+                                           "柔性防水套管B型Ⅱ型", "法兰套管A型Ⅰ型", "法兰套管A型Ⅱ型", "法兰套管B型Ⅰ型",
+                                           "法兰套管B型Ⅱ型", "刚性防水套管A型", "刚性防水套管B型", "刚性防水套管C型"]:
+                                    if feEM.unit not in UNIT_MAPPING_LEN_MM.keys():
+                                        tLengthStr = "*" + str(tResult["长度"]) + "/1000"
+                                    if tBM == "穿墙套管":
+                                        tCircle = Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"])]
+                                        tCircleStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
+
+                                tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000*K{tPrice}"
                                           f"+{tFlange}*{tFlangeWeight}/1000*K{tPrice + 1}")
 
                             if tType == "阀门" and tResult["功率"] == 0.0:
