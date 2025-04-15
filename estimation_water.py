@@ -21,6 +21,10 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
+# 初始化 SocketIO
+socketio = SocketIO()
+
+
 @dataclass
 class EquipmentMaterial:
     """设备材料信息类"""
@@ -498,6 +502,13 @@ def init_routes(app, socketio):
         try:
             # 使用安全的文件名处理函数，但保留原始字符
             filename = safe_filename(file.filename)
+            # 发送进度更新
+            socketio.emit('progress', {
+                'progress': 5,
+                'stage': f'文件 {file.filename} 上传成功！',
+                'sessionId': session_id
+            })
+            socketio.sleep(0)
 
             # 添加时间戳确保文件名唯一
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -506,9 +517,23 @@ def init_routes(app, socketio):
 
             # 保存文件
             file.save(file_path)
+            # 发送进度更新
+            socketio.emit('progress', {
+                'progress': 10,
+                'stage': f'文件 {file.filename} 保存成功！',
+                'sessionId': session_id
+            })
+            socketio.sleep(0)
 
             # 处理Excel文件
             equipment_dict = process_excel_file(file_path)
+            # 发送进度更新
+            socketio.emit('progress', {
+                'progress': 10,
+                'stage': f'文件 {file.filename} 读取完成！',
+                'sessionId': session_id
+            })
+            socketio.sleep(0)
 
             # 写入新的Excel文件
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名
@@ -519,6 +544,7 @@ def init_routes(app, socketio):
                 'stage': f'文件 {file.filename} 上传成功！\n保存为: {new_filename}\n成功读取设备材料表\n已生成输出文件: {os.path.basename(output_path)}',
                 'sessionId': session_id
             })
+            socketio.sleep(0)
 
             return jsonify({
                 'message': '文件上传成功',
@@ -548,6 +574,7 @@ def init_routes(app, socketio):
                 'stage': f'上传失败: {str(e)}',
                 'sessionId': session_id
             })
+            socketio.sleep(0)
             return jsonify({'error': str(e)}), 500
 
     @socketio.on('upload')
