@@ -328,12 +328,16 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     dn2 = 0
                     tValue = ""
                     tPrice = 1
+                    tDensity = ""  # 与铁的容重比
                     if tMaterial in ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E"]:
                         tPrice = 1
+                        tDensity = ""
                     elif tMaterial in ["SS304"]:
                         tPrice = 3
+                        tDensity = "*7.93/7.85"
                     elif tMaterial in ["SS316"]:
                         tPrice = 5
+                        tDensity = "*8.0/7.85"
 
                     if tScore > 0:
                         if tBM in Atlas_PipeFittingsQ235A.keys():
@@ -360,8 +364,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                         find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管-配件"])]
                                     tCircleStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
 
-                            tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000*K{tPrice}"
-                                      f"+{tFlange}*{tFlangeWeight}/1000*K{tPrice + 1}")
+                            tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000{tDensity}*K{tPrice}"
+                                      f"+{tFlange}*{tFlangeWeight}/1000{tDensity}*K{tPrice + 1}")
 
                         if tType == "阀门" and tResult["功率"] == 0.0:
                             if len(tResult["管径"]) > 0:
