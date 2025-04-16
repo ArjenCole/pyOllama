@@ -391,7 +391,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                     if feEM.unit not in UNIT_MAPPING_LEN_MM.keys():
                                         tLengthStr = "*" + str(tResult["长度"]) + "/1000"
                                     if tBM == "穿墙套管":
-                                        tCircle = Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管墙内钢环"])]
+                                        tCircle = Atlas_PipeFittingsQ235A["穿墙套管-配件"][find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管-配件"])]
                                         tCircleStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
 
                                 tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000*K{tPrice}"
