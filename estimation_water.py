@@ -15,7 +15,7 @@ from pyFCM import fuzzy_match_EM, extract_specifications, init_atlas
 UPLOAD_FOLDER = 'uploads/estimation_water'
 OUTPUT_FOLDER = 'output/estimation_water'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
-UNIT_MAPPING_LEN_MM = {"米": 1000,"m": 1000, "dm": 100, "cm": 10, "mm": 1}
+UNIT_MAPPING_LEN_MM = {"米": 1000, "m": 1000, "dm": 100, "cm": 10, "mm": 1}
 
 # 确保上传目录和输出目录存在
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -36,33 +36,48 @@ class EquipmentMaterial:
     remarks: str  # 备注
 
 
-Atlas_PipeFittingsQ235A = {}  # 管配件重量表
+Atlas_PipeFittingsQ235A = {}  # 钢管配件重量表
+Atlas_PipeFittingsDuctileIron = {}  # 球墨铸铁管配件
 Atlas_Valve = {}  # 阀门价格表
+
 
 # 读取重量表
 def atlas():
-    df = pd.read_excel("templates/250407管配件重量表.xlsx", header=0, index_col=0)
-    # 创建一个字典，用于存储每种管配件的每米重量
-    # 遍历表格，提取每米重量
-    for index, row in df.iterrows():
-        # 遍历 row 中的每一个单元格
-        dn1 = 0
-        dn2 = 0
-        for column_name, value in row.items():
-            if column_name == "管径1":
-                dn1 = int(value)
-            elif column_name == "管径2":
-                dn2 = int(value)
-            else:
-                if pd.notna(value):  # 使用 pd.notna() 判断值是否不是 NaN
-                    # 如果 column_name 不在 Atlas_PipeFittingsQ235A 中，初始化一个空字典
-                    if column_name not in Atlas_PipeFittingsQ235A:
-                        Atlas_PipeFittingsQ235A[column_name] = {}
-                    # 如果 dn1 不在 Atlas_PipeFittingsQ235A[column_name] 中，初始化一个空字典
-                    if dn1 not in Atlas_PipeFittingsQ235A[column_name]:
-                        Atlas_PipeFittingsQ235A[column_name][dn1] = {}
-                    # 存储 dn2 和对应的重量
-                    Atlas_PipeFittingsQ235A[column_name][dn1][dn2] = value
+    # 读取 Excel 文件中的所有工作表
+    tXls = pd.ExcelFile("templates/250407管配件重量表.xlsx")
+    for feSheetName in tXls.sheet_names:
+        df = pd.read_excel(tXls, sheet_name=feSheetName, header=0, index_col=0)
+        # 创建一个字典，用于存储每种管配件的每米重量
+        # 遍历表格，提取每米重量
+        for index, row in df.iterrows():
+            # 遍历 row 中的每一个单元格
+            dn1 = 0
+            dn2 = 0
+            for column_name, value in row.items():
+                if column_name == "管径1":
+                    dn1 = int(value)
+                elif column_name == "管径2":
+                    dn2 = int(value)
+                else:
+                    if pd.notna(value):  # 使用 pd.notna() 判断值是否不是 NaN
+                        if feSheetName == "Q235A":
+                            # 如果 column_name 不在 Atlas_PipeFittingsQ235A 中，初始化一个空字典
+                            if column_name not in Atlas_PipeFittingsQ235A:
+                                Atlas_PipeFittingsQ235A[column_name] = {}
+                            # 如果 dn1 不在 Atlas_PipeFittingsQ235A[column_name] 中，初始化一个空字典
+                            if dn1 not in Atlas_PipeFittingsQ235A[column_name]:
+                                Atlas_PipeFittingsQ235A[column_name][dn1] = {}
+                            # 存储 dn2 和对应的重量
+                            Atlas_PipeFittingsQ235A[column_name][dn1][dn2] = value
+                        elif feSheetName == "球铁":
+                            # 如果 column_name 不在 Atlas_PipeFittingsDuctileIron 中，初始化一个空字典
+                            if column_name not in Atlas_PipeFittingsDuctileIron:
+                                Atlas_PipeFittingsDuctileIron[column_name] = {}
+                            # 如果 dn1 不在 Atlas_PipeFittingsDuctileIron[column_name] 中，初始化一个空字典
+                            if dn1 not in Atlas_PipeFittingsDuctileIron[column_name]:
+                                Atlas_PipeFittingsDuctileIron[column_name][dn1] = {}
+                            # 存储 dn2 和对应的重量
+                            Atlas_PipeFittingsDuctileIron[column_name][dn1][dn2] = value
 
     # 读取阀门价格表
     df = pd.read_excel("templates/250410阀门.xlsx", header=0, index_col=0)
@@ -109,32 +124,16 @@ def allowed_file(filename):
 
 
 def safe_filename(filename: str) -> str:
-    """
-    生成安全的文件名，但保留原始字符（包括中文）
-    
-    Args:
-        filename: 原始文件名
-        
-    Returns:
-        安全的文件名
-    """
-    # 获取文件扩展名
-    name, ext = os.path.splitext(filename)
-
-    # 替换不安全的字符，但保留中文
-    safe_name = name.replace('/', '_').replace('\\', '_')
-
-    # 重新组合文件名和扩展名
-    return safe_name + ext
+    name, ext = os.path.splitext(filename)  # 获取文件扩展名
+    safe_name = name.replace('/', '_').replace('\\', '_')  # 替换不安全的字符，但保留中文
+    return safe_name + ext  # 重新组合文件名和扩展名
 
 
 def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
     """
     处理Excel文件，提取设备材料表信息
-    
     Args:
         file_path: Excel文件路径
-        
     Returns:
         以所属单体为key，设备材料列表为value的字典
     """
@@ -193,7 +192,6 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                             result_dict[individual] = []
                         result_dict[individual].append(equipment)
 
-
                 return result_dict
 
         raise ValueError("未找到符合要求的设备材料表")
@@ -205,6 +203,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
 def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_filename: str) -> str:
     # 写入总表
     def write_to_excle_summary():
+        worksheet = writer.sheets['总表']  # 获取工作表对象
         # 复制模板的前7行格式
         for row in range(1, 8):  # 复制前7行
             for col in range(1, len(template_ws[1]) + 1):
@@ -274,6 +273,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             cell.value = f"=SUM({get_column_letter(feCol)}{7 + 1}:{get_column_letter(feCol)}{current_row})"
         cell = worksheet.cell(row=7, column=8)
         cell.value = "=SUM(D7:G7)"
+
     # 写入单项概算
     def write_to_excel_individual():
         # =============================================设备材料表================================================================
@@ -447,43 +447,30 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 Cell.value = f"=SUM(H{feRow - 2}:H{feRow - 1})"
                 Cell = worksheet2.cell(row=4, column=2)
                 Cell.value = f'="估算价值(元)："&ROUND(H{current_row + 5},0)'
+
     #  函数本体从这里开始执行
     try:
-        # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
-        timestamp = time.strftime("%y%m%d%H%M%S")
-
-        # 使用安全的文件名处理函数，但保留原始字符
-        safe_original_filename = safe_filename(original_filename)
-
-        # 构建新文件名
-        new_filename = f"{timestamp}_{safe_original_filename}"
+        timestamp = time.strftime("%y%m%d%H%M%S")  # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
+        safe_original_filename = safe_filename(original_filename)  # 使用安全的文件名处理函数，但保留原始字符
+        new_filename = f"{timestamp}_{safe_original_filename}"  # 构建新文件名
         output_path = os.path.join(OUTPUT_FOLDER, new_filename)
 
-        # 读取标准模板
-        template_path = os.path.join('templates', 'standard.xlsx')
-
+        template_path = os.path.join('templates', 'standard.xlsx')  # 读取标准模板
         # 使用openpyxl直接读取模板文件以保留格式
         from openpyxl import load_workbook
         template_wb = load_workbook(template_path)
         template_ws = template_wb['Sheet1']
 
-        # 创建一个空的DataFrame作为初始工作表
-        df = pd.DataFrame()
-
-        # 创建一个新的Excel写入器
-        with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-            # 先写入空的DataFrame以创建工作表
-            df.to_excel(writer, sheet_name='总表', index=False)
-            # 获取工作簿和工作表对象
-            workbook = writer.book
-            worksheet = writer.sheets['总表']
+        df = pd.DataFrame()  # 创建一个空的DataFrame作为初始工作表
+        with pd.ExcelWriter(output_path, engine='openpyxl') as writer:  # 创建一个新的Excel写入器
+            df.to_excel(writer, sheet_name='总表', index=False)  # 先写入空的DataFrame以创建工作表
+            workbook = writer.book  # 获取工作簿
             write_to_excle_summary()
             write_to_excel_individual()
         return output_path
 
     except Exception as e:
         raise Exception(f"写入Excel文件时出错: {str(e)}")
-
 
 
 def cell_format(pWorksheet, pTemplate_ws, pCurrent_row, name_col_idx, sum_col_idx, pValue):
