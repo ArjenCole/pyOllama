@@ -90,7 +90,7 @@ def atlas():
                 if pd.notna(value):
                     Atlas_Valve[column_name] = {dn1: value}
 
-    init_atlas(Atlas_PipeFittingsQ235A, Atlas_Valve)
+    init_atlas(Atlas_PipeFittingsQ235A,Atlas_PipeFittingsDuctileIron , Atlas_Valve)
 
 
 def find_closest_key(random_number, dictionary):
@@ -328,28 +328,41 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     dn2 = 0
                     tValue = ""
                     tPrice = 1
+                    tPriceFlange = 1
                     tDensity = ""  # 与铁的容重比
+                    tAtlas = Atlas_PipeFittingsQ235A
                     if tMaterial in ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E"]:
                         tPrice = 1
+                        tPriceFlange = 1
                         tDensity = ""
+                        tAtlas = Atlas_PipeFittingsQ235A
                     elif tMaterial in ["SS304"]:
                         tPrice = 3
+                        tPriceFlange = 1
                         tDensity = "*7.93/7.85"
+                        tAtlas = Atlas_PipeFittingsQ235A
                     elif tMaterial in ["SS316"]:
                         tPrice = 5
+                        tPriceFlange = 1
                         tDensity = "*8.0/7.85"
+                        tAtlas = Atlas_PipeFittingsQ235A
+                    elif tMaterial in ["球铁"]:
+                        tPrice = 7
+                        tPriceFlange = 0
+                        tAtlas = Atlas_PipeFittingsDuctileIron
+                        print(tResult)
 
                     if tScore > 0:
-                        if tBM in Atlas_PipeFittingsQ235A.keys():
+                        if tBM in tAtlas.keys():
                             if len(tResult["管径"]) == 0:
                                 continue
                             dn1 = tResult["管径"][0]
                             dn2 = dn1
                             if len(tResult["管径"]) > 1:
                                 dn2 = tResult["管径"][1]
-                            tDic = Atlas_PipeFittingsQ235A[tBM][find_closest_key(dn1, Atlas_PipeFittingsQ235A[tBM])]
-                            tFlangeDn1 = find_closest_key(dn1, Atlas_PipeFittingsQ235A["法兰"])
-                            tFlangeWeight = Atlas_PipeFittingsQ235A["法兰"][tFlangeDn1][tFlangeDn1]
+                            tDic = tAtlas[tBM][find_closest_key(dn1, tAtlas[tBM])]
+                            tFlangeDn1 = find_closest_key(dn1, tAtlas["法兰"])
+                            tFlangeWeight = tAtlas["法兰"][tFlangeDn1][tFlangeDn1]
                             tCircleStr = ""
                             tLengthStr = ""
 
@@ -365,7 +378,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                     tCircleStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
 
                             tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000{tDensity}*K{tPrice}"
-                                      f"+{tFlange}*{tFlangeWeight}/1000{tDensity}*K{tPrice + 1}")
+                                      f"+{tFlange}*{tFlangeWeight}/1000{tDensity}*K{tPrice + tPriceFlange}")
 
                         if tType == "阀门" and tResult["功率"] == 0.0:
                             if len(tResult["管径"]) > 0:

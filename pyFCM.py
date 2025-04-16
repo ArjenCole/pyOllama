@@ -10,12 +10,15 @@ TARGET_WORDS = ['工程或费用名称', '建筑工程', '安装工程', '设备
                 '单位价值（元）', '备注',
                 '项', '目', '节', '细目', '序号']
 Atlas_PipeFittingsQ235A = {}  # 管配件重量表
+Atlas_PipeFittingsDuctileIron = {}
 Atlas_Valve = {}  # 阀门价格表
-def init_atlas(pAtlas_PipeFittingsQ235A, pAtlas_valve):
-    global Atlas_PipeFittingsQ235A, Atlas_Valve
-    Atlas_PipeFittingsQ235A = pAtlas_PipeFittingsQ235A
-    Atlas_Valve = pAtlas_valve
 
+
+def init_atlas(pAtlas_PipeFittingsQ235A, pAtlas_PipeFittingsDuctileIron, pAtlas_valve):
+    global Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve
+    Atlas_PipeFittingsQ235A = pAtlas_PipeFittingsQ235A
+    Atlas_PipeFittingsDuctileIron = pAtlas_PipeFittingsDuctileIron
+    Atlas_Valve = pAtlas_valve
 
 
 def fuzzy_match(p_raw_word, p_target_words=None):
@@ -55,7 +58,7 @@ def test_para(para):
     return rtp
 
 
-material_fittings = ["Q235A", "SS304", "橡胶", "PE100", "PVC-U", "nan"]
+material_fittings = ["Q235A", "SS304", "SS316", "球铁", "橡胶", "PE100", "PVC-U", "nan"]
 material_type = ["管配件", "阀门", "设备", "材料"]
 
 
@@ -66,7 +69,7 @@ def fuzzy_match_EM(pEquipmentMaterial):
     rtScore = 0
     rtType = ""
     flange_pattern = re.compile(r"(单法|双法|二法|三法|四法)")  # 定义正则表达式匹配法兰数量
-    if rtMaterial == "Q235A" or rtMaterial == "SS304":
+    if rtMaterial in ["Q235A", "SS304", "SS316"]:
         match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsQ235A.keys())
         if match_result is not None:  # 检查是否找到匹配
             best_match, score = match_result
@@ -79,6 +82,16 @@ def fuzzy_match_EM(pEquipmentMaterial):
                     rtFlange = {"单法": 1, "双法": 2, "二法": 2, "三法": 3, "四法": 4}.get(flange_text, 0)
                 rtScore = score
                 rtType = "管配件"
+    elif rtMaterial in ["球铁"]:
+        print(pEquipmentMaterial)
+        match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsDuctileIron.keys())
+        if match_result is not None:  # 检查是否找到匹配
+            best_match, score = match_result
+            if score > rtScore:
+                rtBest_match = best_match
+                rtScore = score
+                rtType = "管配件"
+
     match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
     if match_result is not None:  # 检查是否找到匹配
         best_match, score = match_result
