@@ -83,7 +83,6 @@ def fuzzy_match_EM(pEquipmentMaterial):
                 rtScore = score
                 rtType = "管配件"
     elif rtMaterial in ["球铁"]:
-        print(pEquipmentMaterial)
         match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsDuctileIron.keys())
         if match_result is not None:  # 检查是否找到匹配
             best_match, score = match_result

@@ -2,6 +2,7 @@
 var dropzone = document.getElementById('dropzone');
 var fileInput = document.getElementById('fileInput');
 var progressLable = document.getElementById('progressLabel')
+var downloadButton = document.getElementById('downloadButton');
 const socket = io();
 const sessionId = Math.random().toString(36).substring(7); // 生成唯一的会话ID
 
@@ -61,6 +62,14 @@ function uploadFiles(files) {
     }).then(response => response.json())
         .then(data => {
             socket.emit('progress', {progress: data.progress, sessionId: sessionId});
+            if (data.output_file) {
+                // 显示下载按钮
+                downloadButton.style.display = 'block';
+                // 设置下载按钮的点击事件
+                downloadButton.onclick = function() {
+                    window.location.href = `/estimation/water/download/${data.output_file}`;
+                };
+            }
         });
 }
 

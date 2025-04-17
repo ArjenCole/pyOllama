@@ -3,7 +3,7 @@ import time
 import pandas as pd
 from dataclasses import dataclass
 from typing import List, Dict
-from flask import jsonify, request, render_template
+from flask import jsonify, request, render_template, send_from_directory
 from openpyxl.styles import Alignment
 from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
@@ -576,6 +576,14 @@ def init_routes(app, socketio):
 
         except Exception as e:
             _stage_update(0, f'上传失败: {str(e)}', session_id)  # 发送错误信息
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/estimation/water/download/<filename>')
+    def download_file(filename):
+        """处理文件下载"""
+        try:
+            return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
+        except Exception as e:
             return jsonify({'error': str(e)}), 500
 
     def _stage_update(p_percent, p_stage, p_session_id=None):
