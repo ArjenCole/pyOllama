@@ -93,31 +93,6 @@ def atlas():
     init_atlas(Atlas_PipeFittingsQ235A,Atlas_PipeFittingsDuctileIron , Atlas_Valve)
 
 
-def find_closest_key(random_number, dictionary):
-    """
-    找到与随机整数差值最小的字典键。
-    参数:
-        random_number (int): 随机整数
-        dictionary (dict): 字典，键是整数
-    返回:
-        int: 与随机整数差值最小的键
-    """
-    # 初始化最小差值和最接近的键
-    min_diff = float('inf')  # 设置为无穷大
-    closest_key = None
-
-    # 遍历字典的键
-    for key in dictionary.keys():
-        # 计算差值
-        diff = abs(key - random_number)
-        # 更新最小差值和最接近的键
-        if diff < min_diff:
-            min_diff = diff
-            closest_key = key
-
-    return closest_key
-
-
 def allowed_file(filename):
     """检查文件类型是否允许"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -203,6 +178,22 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
 def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_filename: str) -> str:
     # 写入总表
     def write_to_excle_summary():
+        def cell_format(pWorksheet, pTemplate_ws, pCurrent_row, name_col_idx, sum_col_idx, pValue):
+            pCell = pWorksheet.cell(row=pCurrent_row, column=name_col_idx)
+            pCell.value = pValue
+            pCell.alignment = Alignment(horizontal='right', vertical='center')
+            cell = pWorksheet.cell(row=pCurrent_row, column=sum_col_idx)
+            cell.value = f"=SUM(D{pCurrent_row}:G{pCurrent_row})"
+            row_formate(pWorksheet, pTemplate_ws, pCurrent_row)
+
+        def row_formate(pWorksheet, pTemplate_ws, pRow):
+            pWorksheet.row_dimensions[pRow].height = pTemplate_ws.row_dimensions[7].height  # 调整行高
+            for feCol in range(1, 13):
+                tCell = pWorksheet.cell(row=pRow, column=feCol)
+                tCell.border = pTemplate_ws.cell(row=8, column=feCol).border.copy()  # 使用模板的边框样式
+                if feCol != 3:
+                    tCell.alignment = pTemplate_ws.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
+
         worksheet = writer.sheets['总表']  # 获取工作表对象
         # 复制模板的前7行格式
         for row in range(1, 8):  # 复制前7行
@@ -276,6 +267,29 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
     # 写入单项概算
     def write_to_excel_individual():
+        def find_closest_key(random_number, dictionary):
+            """
+            找到与随机整数差值最小的字典键。
+            参数:
+                random_number (int): 随机整数
+                dictionary (dict): 字典，键是整数
+            返回:
+                int: 与随机整数差值最小的键
+            """
+            # 初始化最小差值和最接近的键
+            min_diff = float('inf')  # 设置为无穷大
+            closest_key = None
+
+            # 遍历字典的键
+            for key in dictionary.keys():
+                # 计算差值
+                diff = abs(key - random_number)
+                # 更新最小差值和最接近的键
+                if diff < min_diff:
+                    min_diff = diff
+                    closest_key = key
+
+            return closest_key
         # =============================================设备材料表================================================================
         category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
         for key in equipment_dict.keys():
@@ -487,24 +501,6 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
     except Exception as e:
         raise Exception(f"写入Excel文件时出错: {str(e)}")
-
-
-def cell_format(pWorksheet, pTemplate_ws, pCurrent_row, name_col_idx, sum_col_idx, pValue):
-    pCell = pWorksheet.cell(row=pCurrent_row, column=name_col_idx)
-    pCell.value = pValue
-    pCell.alignment = Alignment(horizontal='right', vertical='center')
-    cell = pWorksheet.cell(row=pCurrent_row, column=sum_col_idx)
-    cell.value = f"=SUM(D{pCurrent_row}:G{pCurrent_row})"
-    row_formate(pWorksheet, pTemplate_ws, pCurrent_row)
-
-
-def row_formate(pWorksheet, pTemplate_ws, pRow):
-    pWorksheet.row_dimensions[pRow].height = pTemplate_ws.row_dimensions[7].height  # 调整行高
-    for feCol in range(1, 13):
-        tCell = pWorksheet.cell(row=pRow, column=feCol)
-        tCell.border = pTemplate_ws.cell(row=8, column=feCol).border.copy()  # 使用模板的边框样式
-        if feCol != 3:
-            tCell.alignment = pTemplate_ws.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
 
 
 def init_routes(app, socketio):
