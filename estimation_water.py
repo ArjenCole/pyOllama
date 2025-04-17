@@ -602,36 +602,46 @@ def init_routes(app, socketio):
             file.save(file_path)  # 保存文件
             _stage_update(10, f'文件 {file.filename} 保存成功！', session_id)  # 发送进度更新
 
-            equipment_dict = process_excel_file(file_path)  # 处理Excel文件
-            _stage_update(30, f'文件 {file.filename} 读取完成，数据处理中', session_id)  # 发送进度更新
-
-            output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名，写入新的Excel文件
-
-            _stage_update(100, f'处理完成，已输出文件: {os.path.basename(output_path)}', session_id)  # 发送进度更新
-
             return jsonify({
                 'message': '文件上传成功',
                 'filename': new_filename,
-                'progress': 100,
-                'output_file': os.path.basename(output_path),
-                'equipment_data': {
-                    unit: [
-                        {
-                            'name': eq.name,
-                            'specification': eq.specification,
-                            'material': eq.material,
-                            'unit': eq.unit,
-                            'quantity': eq.quantity,
-                            'remarks': eq.remarks
-                        }
-                        for eq in equipment_list
-                    ]
-                    for unit, equipment_list in equipment_dict.items()
-                }
+                'progress': 10
             })
 
         except Exception as e:
             _stage_update(0, f'上传失败: {str(e)}', session_id)  # 发送错误信息
+            return jsonify({'error': str(e)}), 500
+
+    @app.route('/estimation/water/process', methods=['POST'])
+    def process_water_file():
+        """处理文件并生成估算结果"""
+        try:
+            data = request.get_json()
+            filename = data.get('filename')
+            session_id = request.headers.get('X-Session-ID')
+
+            if not filename:
+                return jsonify({'error': '未提供文件名'}), 400
+
+            file_path = os.path.join(UPLOAD_FOLDER, filename)
+            if not os.path.exists(file_path):
+                return jsonify({'error': '文件不存在'}), 404
+
+            equipment_dict = process_excel_file(file_path)  # 处理Excel文件
+            _stage_update(30, f'文件 {filename} 读取完成，数据处理中', session_id)  # 发送进度更新
+
+            output_path = write_to_excel(equipment_dict, filename)  # 使用原始文件名，写入新的Excel文件
+
+            _stage_update(100, f'处理完成，已输出文件: {os.path.basename(output_path)}', session_id)  # 发送进度更新
+
+            return jsonify({
+                'message': '处理完成',
+                'progress': 100,
+                'output_file': os.path.basename(output_path)
+            })
+
+        except Exception as e:
+            _stage_update(0, f'处理失败: {str(e)}', session_id)  # 发送错误信息
             return jsonify({'error': str(e)}), 500
 
     @app.route('/estimation/water/download/<filename>')
