@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 from flask_socketio import SocketIO
 from openpyxl.utils import get_column_letter
 
-from pyFCM import fuzzy_match_EM, extract_specifications, init_atlas
+from pyFCM import fuzzy_match_EM, extract_specifications, init_atlas, fuzzy_match
 
 # 配置上传文件存储路径
 UPLOAD_FOLDER = 'uploads/estimation_water'
@@ -90,7 +90,7 @@ def atlas():
                 if pd.notna(value):
                     Atlas_Valve[column_name] = {dn1: value}
 
-    init_atlas(Atlas_PipeFittingsQ235A,Atlas_PipeFittingsDuctileIron , Atlas_Valve)
+    init_atlas(Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve)
 
 
 def allowed_file(filename):
@@ -112,17 +112,76 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
     Returns:
         以所属单体为key，设备材料列表为value的字典
     """
+    _Target_Words = {"序号": ["序号"],
+                     "所属单体": ["单体", "所属单体"],
+                     "名称": ["名称"],
+                     "规格": ["规格"],
+                     "材料": ["材料"],
+                     "单位": ["单位"],
+                     "数量": ["数量"],
+                     "备注": ["备注"]}
+
+    def _match_row(p_row):
+        _target_col = {}
+        _target_sim = {}
+        for feKey in _Target_Words:
+            _target_sim[feKey] = 0.0
+        for feCol in range(0, len(p_row)):
+
+            feCellValue = p_row[feCol]
+            if pd.isna(feCellValue):
+                continue
+            # print(feCol, feCellValue)
+            _match_key = None
+            _match_sim = 0.0
+            for feKey in _Target_Words.keys():  # 与目标字段逐个匹配
+                _matched_word, _similarity_score = fuzzy_match(feCellValue, _Target_Words[feKey])
+                # print("match", _matched_word, _similarity_score)
+                if _similarity_score[0] > _match_sim:
+                    _match_sim = _similarity_score[0]
+                    _match_key = feKey
+            # print("ks", _match_key, _match_sim)
+            if _match_key is not None:
+                if _match_sim > _target_sim[_match_key]:
+                    _target_col[_match_key] = feCol
+                    _target_sim[_match_key] = _match_sim
+
+        rt_similarity_score = 0.0
+        if all(item in _Target_Words.keys() for item in _target_col):
+            for feKey in _target_col.keys():
+                rt_similarity_score += _target_col[feKey]
+
+        return rt_similarity_score, _target_col
+
     try:
-        # 使用openpyxl引擎读取Excel文件
+
+        # 使用 openpyxl 引擎读取 Excel 文件
         excel_file = pd.ExcelFile(file_path, engine='openpyxl')
 
-        # 查找设备材料表
         # 假设表头包含这些字段
         required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
 
         # 遍历所有工作表
         for sheet_name in excel_file.sheet_names:
-            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl')
+            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=None)
+            _match_head_row = 0
+            _match_head_sim = 0.0
+            current_row = 0
+            _key_exchange = {}
+            for index, row in df_sheet.iterrows():
+                t_sim, t_target_col = _match_row(row)
+                if t_sim > _match_head_sim:
+                    _match_head_sim = t_sim
+                    _match_head_row = index
+                    _key_exchange = t_target_col
+                current_row = current_row + 1
+                if current_row > 10:
+                    break
+
+            print(_match_head_row)
+            print(_key_exchange)
+
+            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
             if all(col in df_sheet.columns for col in required_columns):
                 # 找到目标表格
                 result_dict = {}
@@ -130,7 +189,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                 last_individual = ""
                 # 遍历每一行
                 for _, row in df_sheet.iterrows():
-                    individual = row["所属单体"]
+                    individual = row.iloc[_key_exchange["所属单体"]]
                     if pd.isna(individual):  # 跳过空行
                         if last_individual == "":
                             continue
@@ -139,13 +198,13 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                     else:
                         last_individual = individual
 
-                    tQList = str(row["数量"]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
-                    tSpStr = str(row["规格"])
+                    tQList = str(row.iloc[_key_exchange["数量"]]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
+                    tSpStr = str(row.iloc[_key_exchange["规格"]])
                     tSpList = []
                     if len(tQList) > 1:
                         tSpList = tSpStr.split('/')
                     else:
-                        tSpList.append(str(row["规格"]))
+                        tSpList.append(str(row.iloc[_key_exchange["规格"]]))
 
                     for i in range(0, len(tQList)):
                         tQ = tQList[i]
@@ -155,12 +214,12 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                             tSp = tSpList[len(tSpList) - 1]
                         # 创建设备材料对象
                         equipment = EquipmentMaterial(
-                            name=str(row["名称"]),
+                            name=str(row.iloc[_key_exchange["名称"]]),
                             specification=tSp,
-                            material=str(row["材料"]),
-                            unit=str(row["单位"]),
+                            material=str(row.iloc[_key_exchange["材料"]]),
+                            unit=str(row.iloc[_key_exchange["单位"]]),
                             quantity=tQ if pd.notna(tQ) else 0.0,
-                            remarks=str(row["备注"]) if pd.notna(row["备注"]) else ""
+                            remarks=str(row.iloc[_key_exchange["备注"]]) if pd.notna(row.iloc[_key_exchange["备注"]]) else ""
                         )
                         # 将设备材料添加到对应单体的列表中
                         if individual not in result_dict:
@@ -290,6 +349,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     closest_key = key
 
             return closest_key
+
         # =============================================设备材料表================================================================
         category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
         for key in equipment_dict.keys():
@@ -390,8 +450,9 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                         find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管-配件"])]
                                     tCircleStr = "+" + str(tCircle[find_closest_key(dn2, tCircle)])
 
-                            tValue = (f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000{tDensity}*K{tPrice}"
-                                      f"+{tFlange}*{tFlangeWeight}/1000{tDensity}*K{tPrice + tPriceFlange}")
+                            tValue = (
+                                f"=({tDic[find_closest_key(dn2, tDic)]}{tLengthStr}{tCircleStr})/1000{tDensity}*K{tPrice}"
+                                f"+{tFlange}*{tFlangeWeight}/1000{tDensity}*K{tPrice + tPriceFlange}")
 
                         if tType == "阀门" and tResult["功率"] == 0.0:
                             if len(tResult["管径"]) > 0:
