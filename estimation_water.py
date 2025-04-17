@@ -350,7 +350,6 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         tPrice = 7
                         tPriceFlange = 0
                         tAtlas = Atlas_PipeFittingsDuctileIron
-                        print(tResult)
 
                     if tScore > 0:
                         if tBM in tAtlas.keys():
