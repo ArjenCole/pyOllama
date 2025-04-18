@@ -442,14 +442,13 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         tPriceFlange = 0
                         tAtlas = Atlas_PipeFittingsDuctileIron
 
+                    if len(tResult["管径"]) > 0:
+                        dn1 = tResult["管径"][0]
+                        dn2 = dn1
+                        if len(tResult["管径"]) > 1:
+                            dn2 = tResult["管径"][1]
                     if tScore > 0:
                         if tBM in tAtlas.keys():
-                            if len(tResult["管径"]) == 0:
-                                continue
-                            dn1 = tResult["管径"][0]
-                            dn2 = dn1
-                            if len(tResult["管径"]) > 1:
-                                dn2 = tResult["管径"][1]
                             tDic = tAtlas[tBM][find_closest_key(dn1, tAtlas[tBM])]
                             tFlangeDn1 = find_closest_key(dn1, tAtlas["法兰"])
                             tFlangeWeight = tAtlas["法兰"][tFlangeDn1][tFlangeDn1]
@@ -476,7 +475,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 if tResult["管径"][0] >= 600:
                                     tType = "设备"
                                 else:
-                                    tType = "管配件"
+                                    tType = "材料"
                             else:
                                 tType = "材料"
                     if tResult["功率"] > 0:
