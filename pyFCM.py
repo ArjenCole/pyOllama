@@ -12,13 +12,15 @@ TARGET_WORDS = ['工程或费用名称', '建筑工程', '安装工程', '设备
 Atlas_PipeFittingsQ235A = {}  # 管配件重量表
 Atlas_PipeFittingsDuctileIron = {}
 Atlas_Valve = {}  # 阀门价格表
+Atlas_Equipment = {}
 
 
-def init_atlas(pAtlas_PipeFittingsQ235A, pAtlas_PipeFittingsDuctileIron, pAtlas_valve):
-    global Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve
+def init_atlas(pAtlas_PipeFittingsQ235A, pAtlas_PipeFittingsDuctileIron, pAtlas_valve, pAtlas_Equipment):
+    global Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve, Atlas_Equipment
     Atlas_PipeFittingsQ235A = pAtlas_PipeFittingsQ235A
     Atlas_PipeFittingsDuctileIron = pAtlas_PipeFittingsDuctileIron
     Atlas_Valve = pAtlas_valve
+    Atlas_Equipment = pAtlas_Equipment
 
 
 def fuzzy_match(p_raw_word, p_target_words=None):
@@ -90,6 +92,14 @@ def fuzzy_match_EM(pEquipmentMaterial):
                 rtBest_match = best_match
                 rtScore = score
                 rtType = "管配件"
+    elif rtMaterial == "nan":
+        match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Equipment.keys())
+        if match_result is not None:  # 检查是否找到匹配
+            best_match, score = match_result
+            if score > rtScore and score > 70:  # 设备必须匹配度高一些才确认，反正后面有功率识别兜底
+                rtBest_match = best_match
+                rtScore = score
+                rtType = "设备"
 
     match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
     if match_result is not None:  # 检查是否找到匹配
@@ -98,6 +108,8 @@ def fuzzy_match_EM(pEquipmentMaterial):
             rtBest_match = best_match
             rtScore = score
             rtType = "阀门"
+
+
     return rtBest_match, rtFlange, rtMaterial, rtScore, rtType
 
 

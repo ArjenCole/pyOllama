@@ -39,6 +39,7 @@ class EquipmentMaterial:
 Atlas_PipeFittingsQ235A = {}  # 钢管配件重量表
 Atlas_PipeFittingsDuctileIron = {}  # 球墨铸铁管配件
 Atlas_Valve = {}  # 阀门价格表
+Atlas_Equipment = {}
 
 
 # 读取重量表
@@ -89,8 +90,19 @@ def atlas():
             else:
                 if pd.notna(value):
                     Atlas_Valve[column_name] = {dn1: value}
-
-    init_atlas(Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve)
+    # 读取设备价格表
+    df = pd.read_excel("templates/250410设备.xlsx", header=0, index_col=0)
+    for index, row in df.iterrows():
+        tName = ""
+        for column_name, value in row.items():
+            if pd.notna(value):
+                if column_name == "设备名称":
+                    tName = value
+                    Atlas_Equipment[tName] = {}
+                else:
+                    Atlas_Equipment[tName][column_name] = value
+    # print(Atlas_Equipment.keys())
+    init_atlas(Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve, Atlas_Equipment)
 
 
 def allowed_file(filename):
