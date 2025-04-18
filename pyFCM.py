@@ -113,7 +113,7 @@ def extract_specifications(spec_string):  # 从规格字符串中提取管径和
     result["管径"].sort(reverse=True)
 
     # 提取长度
-    length_pattern = re.compile(r'(L|La)\s*[=＝]\s*(\d+)(mm|cm|m)?')  # 匹配模式：L或La后跟全角或半角等号和数字，可能有单位
+    length_pattern = re.compile(r'(L|La|L1)\s*[=＝]\s*(\d+)(mm|cm|m)?')  # 匹配模式：L或La后跟全角或半角等号和数字，可能有单位
     length_match = length_pattern.search(spec_string)
     if length_match:
         length_value = int(length_match.group(2))
