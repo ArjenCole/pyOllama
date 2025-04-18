@@ -360,7 +360,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 # 创建第二个工作表（设备材料表）
                 template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
                 worksheet2 = workbook.create_sheet(key + feSheetname)  # 创建新的工作表
-                for row in range(1, 8):  # 复制Sheet2的前7行格式
+                # 复制Sheet2的前7行格式
+                for row in range(1, 8):
                     for col in range(1, len(template_ws2[1]) + 1):
                         template_cell = template_ws2.cell(row=row, column=col)  # 获取模板单元格
                         target_cell = worksheet2.cell(row=row, column=col)  # 获取目标单元格
@@ -476,7 +477,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell = worksheet2.cell(row=current_row, column=3)
                     Cell.value = feEM.name
                     Cell = worksheet2.cell(row=current_row, column=4)
-                    Cell.value = feEM.specification
+                    if feEM.material != "nan":
+                        Cell.value = f"{feEM.specification} {feEM.material}"
+                    else:
+                        Cell.value = feEM.specification
                     Cell = worksheet2.cell(row=current_row, column=5)
                     Cell.value = feEM.unit
                     Cell = worksheet2.cell(row=current_row, column=6)
