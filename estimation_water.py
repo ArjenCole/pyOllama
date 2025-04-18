@@ -171,7 +171,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
         
         # 遍历所有工作表
         for sheet_index, sheet_name in enumerate(excel_file.sheet_names):
-            progress = 30 + (sheet_index / total_sheets) * 20  # 30-50% 的进度
+            progress = 10 + (sheet_index / total_sheets) * 60  # 10-70% 的进度
             _stage_update(progress, f'正在处理工作表: {sheet_name}……', session_id, socketio)
             
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=None)
@@ -204,9 +204,6 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                 total_rows = len(df_sheet)
                 
                 for row_index, (_, row) in enumerate(df_sheet.iterrows()):
-                    progress = 50 + (row_index / total_rows) * 20  # 50-70% 的进度
-                    _stage_update(progress, f'正在处理第 {row_index + 1} 行数据', session_id, socketio)
-                    
                     individual = row.iloc[_key_exchange["所属单体"]]
                     if pd.isna(individual):  # 跳过空行
                         if last_individual == "":
