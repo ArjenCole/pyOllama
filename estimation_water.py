@@ -158,8 +158,6 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
         # 使用 openpyxl 引擎读取 Excel 文件
         excel_file = pd.ExcelFile(file_path, engine='openpyxl')
 
-        # 假设表头包含这些字段
-        required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
 
         result_dict = {}
         # 遍历所有工作表
@@ -185,7 +183,10 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
             print(_key_exchange)
 
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
-            if all(col in _key_exchange.keys() for col in required_columns):
+            # 假设表头包含这些字段
+            # required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
+            required_columns = ["所属单体", "名称", "规格", "材料", "单位", "数量"]
+            if all(col in _key_exchange.keys() for col in required_columns):  # 判断要求的字段是否都在识别结果中能找到
                 # 找到目标表格
 
                 last_individual = ""
