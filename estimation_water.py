@@ -177,14 +177,15 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                     _match_head_row = index
                     _key_exchange = t_target_col
                 current_row = current_row + 1
-                if current_row > 10:
+                print("t_sim", t_sim)
+                if current_row > 10 or t_sim > 25:
                     break
 
-            print(_match_head_row)
+            print("_match_head_row", _match_head_row)
             print(_key_exchange)
 
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
-            if all(col in df_sheet.columns for col in required_columns):
+            if all(col in _key_exchange.keys() for col in required_columns):
                 # 找到目标表格
 
                 last_individual = ""
