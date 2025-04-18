@@ -603,10 +603,10 @@ def init_routes(app, socketio):
             file_path = os.path.join(UPLOAD_FOLDER, new_filename)
 
             file.save(file_path)  # 保存文件
-            _stage_update(10, f'文件 {file.filename} 保存成功！', session_id)  # 发送进度更新
+            _stage_update(10, f'文件 {file.filename} 保存成功！，数据读取中……', session_id)  # 发送进度更新
 
             equipment_dict = process_excel_file(file_path)  # 处理Excel文件
-            _stage_update(30, f'文件 {file.filename} 读取完成，数据处理中', session_id)  # 发送进度更新
+            _stage_update(30, f'文件 {file.filename} 读取完成，数据处理中……', session_id)  # 发送进度更新
 
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名，写入新的Excel文件
 
