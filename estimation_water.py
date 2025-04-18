@@ -104,11 +104,19 @@ def safe_filename(filename: str) -> str:
     return safe_name + ext  # 重新组合文件名和扩展名
 
 
-def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
+def _stage_update(p_percent, p_stage, p_session_id=None, socketio=None):
+    if socketio:
+        socketio.emit('progress', {'progress': p_percent, 'stage': p_stage, 'sessionId': p_session_id})
+    time.sleep(0)
+
+
+def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[str, List[EquipmentMaterial]]:
     """
     处理Excel文件，提取设备材料表信息
     Args:
         file_path: Excel文件路径
+        session_id: 会话ID，用于更新进度
+        socketio: SocketIO实例，用于进度更新
     Returns:
         以所属单体为key，设备材料列表为value的字典
     """
@@ -158,11 +166,14 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
         # 使用 openpyxl 引擎读取 Excel 文件
         excel_file = pd.ExcelFile(file_path, engine='openpyxl')
 
-
         result_dict = {}
+        total_sheets = len(excel_file.sheet_names)
+        
         # 遍历所有工作表
-        for sheet_name in excel_file.sheet_names:
-            print(sheet_name)
+        for sheet_index, sheet_name in enumerate(excel_file.sheet_names):
+            progress = 30 + (sheet_index / total_sheets) * 20  # 30-50% 的进度
+            _stage_update(progress, f'正在处理工作表: {sheet_name}……', session_id, socketio)
+            
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=None)
             _match_head_row = 0
             _match_head_sim = 0.0
@@ -190,8 +201,12 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                 # 找到目标表格
 
                 last_individual = ""
-                # 遍历每一行
-                for _, row in df_sheet.iterrows():
+                total_rows = len(df_sheet)
+                
+                for row_index, (_, row) in enumerate(df_sheet.iterrows()):
+                    progress = 50 + (row_index / total_rows) * 20  # 50-70% 的进度
+                    _stage_update(progress, f'正在处理第 {row_index + 1} 行数据', session_id, socketio)
+                    
                     individual = row.iloc[_key_exchange["所属单体"]]
                     if pd.isna(individual):  # 跳过空行
                         if last_individual == "":
@@ -234,6 +249,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
         # raise ValueError("未找到符合要求的设备材料表")
 
     except Exception as e:
+        _stage_update(0, f"处理Excel文件时出错: {str(e)}", session_id, socketio)
         raise Exception(f"处理Excel文件时出错: {str(e)}")
 
 
@@ -595,7 +611,7 @@ def init_routes(app, socketio):
         try:
             # 使用安全的文件名处理函数，但保留原始字符
             filename = safe_filename(file.filename)
-            _stage_update(5, f'文件 {file.filename} 上传成功！', session_id)
+            _stage_update(5, f'文件 {file.filename} 上传成功！', session_id, socketio)
 
             # 添加时间戳确保文件名唯一
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -603,14 +619,14 @@ def init_routes(app, socketio):
             file_path = os.path.join(UPLOAD_FOLDER, new_filename)
 
             file.save(file_path)  # 保存文件
-            _stage_update(10, f'文件 {file.filename} 保存成功！，数据读取中……', session_id)  # 发送进度更新
+            _stage_update(10, f'文件 {file.filename} 保存成功！，数据读取中……', session_id, socketio)  # 发送进度更新
 
-            equipment_dict = process_excel_file(file_path)  # 处理Excel文件
-            _stage_update(30, f'文件 {file.filename} 读取完成，数据处理中……', session_id)  # 发送进度更新
+            equipment_dict = process_excel_file(file_path, session_id, socketio)  # 处理Excel文件，传入session_id
+            _stage_update(70, f'文件 {file.filename} 读取完成，正在生成结果文件……', session_id, socketio)  # 发送进度更新
 
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名，写入新的Excel文件
 
-            _stage_update(100, f'处理完成，已输出文件: {os.path.basename(output_path)}', session_id)  # 发送进度更新
+            _stage_update(100, f'处理完成，已输出文件: {os.path.basename(output_path)}', session_id, socketio)  # 发送进度更新
 
             return jsonify({
                 'message': '文件上传成功',
@@ -634,7 +650,7 @@ def init_routes(app, socketio):
             })
 
         except Exception as e:
-            _stage_update(0, f'上传失败: {str(e)}', session_id)  # 发送错误信息
+            _stage_update(0, f'上传失败: {str(e)}', session_id, socketio)  # 发送错误信息
             return jsonify({'error': str(e)}), 500
 
     @app.route('/estimation/water/download/<filename>')
@@ -644,10 +660,6 @@ def init_routes(app, socketio):
             return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-
-    def _stage_update(p_percent, p_stage, p_session_id=None):
-        socketio.emit('progress', {'progress': p_percent, 'stage': p_stage, 'sessionId': p_session_id})
-        time.sleep(0)
 
     @socketio.on('upload')
     def handle_upload(data):
