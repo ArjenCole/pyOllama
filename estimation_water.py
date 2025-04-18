@@ -161,8 +161,10 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
         # 假设表头包含这些字段
         required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
 
+        result_dict = {}
         # 遍历所有工作表
         for sheet_name in excel_file.sheet_names:
+            print(sheet_name)
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=None)
             _match_head_row = 0
             _match_head_sim = 0.0
@@ -184,7 +186,6 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
             if all(col in df_sheet.columns for col in required_columns):
                 # 找到目标表格
-                result_dict = {}
 
                 last_individual = ""
                 # 遍历每一行
@@ -226,7 +227,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
                             result_dict[individual] = []
                         result_dict[individual].append(equipment)
 
-                return result_dict
+        return result_dict
 
         raise ValueError("未找到符合要求的设备材料表")
 
