@@ -231,7 +231,7 @@ def process_excel_file(file_path: str) -> Dict[str, List[EquipmentMaterial]]:
 
         return result_dict
 
-        raise ValueError("未找到符合要求的设备材料表")
+        # raise ValueError("未找到符合要求的设备材料表")
 
     except Exception as e:
         raise Exception(f"处理Excel文件时出错: {str(e)}")
