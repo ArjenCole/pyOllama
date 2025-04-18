@@ -485,25 +485,21 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                     Cell.value = feEM.unit
                     Cell = worksheet2.cell(row=current_row, column=6)
                     Cell.value = feEM.quantity
+                    Cell = worksheet2.cell(row=current_row, column=7)
+                    Cell.value = str(tValue)
                     Cell = worksheet2.cell(row=current_row, column=8)
                     Cell.value = f"=F{current_row}*G{current_row}"
-                    Cell = worksheet2.cell(row=current_row, column=10)
-                    Cell.value = feEM.material
-                    Cell = worksheet2.cell(row=current_row, column=11)
+
+                    Cell = worksheet2.cell(row=current_row, column=13)
                     Cell.value = tBM
                     Cell = worksheet2.cell(row=current_row, column=12)
                     Cell.value = tScore
-                    Cell = worksheet2.cell(row=current_row, column=13)
-                    for feDN in tResult["管径"]:
-                        if Cell.value is None:
-                            Cell.value = ""
-                        Cell.value = str(Cell.value) + " " + str(feDN)
                     Cell = worksheet2.cell(row=current_row, column=14)
-                    Cell.value = str(tResult["长度"]) + " " + str(tResult["长度单位"])
-                    Cell = worksheet2.cell(row=current_row, column=15)
-                    Cell.value = f"{tBM} DN{dn1}×DN{dn2}"
-                    Cell = worksheet2.cell(row=current_row, column=7)
-                    Cell.value = str(tValue)
+                    if tResult["长度"] != 0:
+                        Cell.value = f"DN{dn1}×DN{dn2} L=" + str(tResult["长度"]) + str(tResult["长度单位"])
+                    else:
+                        Cell.value = f"DN{dn1}×DN{dn2}"
+
                     Cell = worksheet2.cell(row=current_row, column=17)
                     Cell.value = str(tType)
 
