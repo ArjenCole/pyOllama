@@ -142,7 +142,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                      "备注": ["备注"]}
     # 假设表头包含这些字段
     # _Required_Columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
-    _Required_Columns = ["所属单体", "名称", "规格", "单位", "数量"]
+    _Required_Columns = ["名称", "规格", "单位", "数量"]
 
     def _match_row(p_row):
         _target_col = {}
@@ -208,8 +208,11 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                 total_rows = len(df_sheet)
                 
                 for row_index, (_, row) in enumerate(df_sheet.iterrows()):
-                    # 处理单体单元格合并情况
-                    individual = row.iloc[_key_exchange["所属单体"]]
+                    if "所属单体" not in _key_exchange.keys():
+                        individual = sheet_name
+                    else:
+                        # 处理单体单元格合并情况
+                        individual = row.iloc[_key_exchange["所属单体"]]
                     if pd.isna(individual):
                         if last_individual == "":
                             continue
