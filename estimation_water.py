@@ -133,7 +133,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
         以所属单体为key，设备材料列表为value的字典
     """
     _Target_Words = {"序号": ["序号", "编号"],
-                     "所属单体": ["单体", "所属单体", "构筑物", "位置", "设备位置"],
+                     "所属单体": ["单体", "所属单体", "构筑物", "位置", "设备位置", "安装位置"],
                      "名称": ["名称", "设备名称"],
                      "规格": ["规格", "规格尺寸", "规格参数", "型号规格"],
                      "材料": ["材料", "材质"],
@@ -211,19 +211,33 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
             required_columns = ["所属单体", "名称", "规格", "材料", "单位", "数量"]
             if all(col in _key_exchange.keys() for col in required_columns):  # 判断要求的字段是否都在识别结果中能找到
                 # 找到目标表格
-
                 last_individual = ""
+                last_EM = None
                 total_rows = len(df_sheet)
                 
                 for row_index, (_, row) in enumerate(df_sheet.iterrows()):
+                    # 处理单体单元格合并情况
                     individual = row.iloc[_key_exchange["所属单体"]]
-                    if pd.isna(individual):  # 跳过空行
+                    if pd.isna(individual):
                         if last_individual == "":
                             continue
                         else:
                             individual = last_individual
                     else:
                         last_individual = individual
+                    # 处理名称单元格合并情况
+
+                    tEMname = row.iloc[_key_exchange["名称"]]
+                    if pd.isna(tEMname):
+                        if pd.isna(row.iloc[_key_exchange["数量"]]):
+                            if last_EM is not None:
+                                last_EM.specification += str(row.iloc[_key_exchange["规格"]])
+                            continue
+                        else:
+                            if last_EM is not None:
+                                tEMname = last_EM.name
+                            else:
+                                continue
 
                     tQList = str(row.iloc[_key_exchange["数量"]]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
                     tSpStr = str(row.iloc[_key_exchange["规格"]])
@@ -240,9 +254,9 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                         else:
                             tSp = tSpList[len(tSpList) - 1]
                         # 创建设备材料对象
-                        equipment = EquipmentMaterial(
-                            name=str(row.iloc[_key_exchange["名称"]]),
-                            specification=tSp,
+                        tEM = EquipmentMaterial(
+                            name=str(tEMname),
+                            specification=str(tSp),
                             material=str(row.iloc[_key_exchange["材料"]]),
                             unit=str(row.iloc[_key_exchange["单位"]]),
                             quantity=tQ if pd.notna(tQ) else 0.0,
@@ -251,7 +265,8 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                         # 将设备材料添加到对应单体的列表中
                         if individual not in result_dict:
                             result_dict[individual] = []
-                        result_dict[individual].append(equipment)
+                        result_dict[individual].append(tEM)
+                        last_EM = tEM
 
         return result_dict
 
