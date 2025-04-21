@@ -355,6 +355,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "土建")
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
+            cell = worksheet.cell(row=current_row, column=5)
+            cell.value = f"=ROUND('{key}gpj'!H36/10000,2)"
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
 
@@ -601,8 +603,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         with pd.ExcelWriter(output_path, engine='openpyxl') as writer:  # 创建一个新的Excel写入器
             df.to_excel(writer, sheet_name='总表', index=False)  # 先写入空的DataFrame以创建工作表
             workbook = writer.book  # 获取工作簿
-            write_to_excle_summary()
             write_to_excel_individual()
+            write_to_excle_summary()
         return output_path
 
     except Exception as e:
