@@ -133,13 +133,16 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
         以所属单体为key，设备材料列表为value的字典
     """
     _Target_Words = {"序号": ["序号", "编号"],
-                     "所属单体": ["单体", "所属单体", "构筑物", "位置", "设备位置", "安装位置"],
+                     "所属单体": ["单体", "所属单体", "构筑物", "位置", "设备位置", "安装位置", "安装地点"],
                      "名称": ["名称", "设备名称"],
                      "规格": ["规格", "规格尺寸", "规格参数", "型号规格"],
                      "材料": ["材料", "材质"],
                      "单位": ["单位"],
                      "数量": ["数量"],
                      "备注": ["备注"]}
+    # 假设表头包含这些字段
+    # _Required_Columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
+    _Required_Columns = ["所属单体", "名称", "规格", "单位", "数量"]
 
     def _match_row(p_row):
         _target_col = {}
@@ -160,18 +163,13 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                 if _similarity_score[0] > _match_sim:
                     _match_sim = _similarity_score[0]
                     _match_key = feKey
-            # print("ks", _match_key, _match_sim)
+            # print("ks", feCellValue, _match_key, _match_sim)
             if _match_key is not None:
-                if _match_sim > _target_sim[_match_key]:
+                if _match_sim > max(_target_sim[_match_key], 0.8):
                     _target_col[_match_key] = feCol
                     _target_sim[_match_key] = _match_sim
 
-        rt_similarity_score = 0.0
-        if all(item in _Target_Words.keys() for item in _target_col):
-            for feKey in _target_col.keys():
-                rt_similarity_score += _target_col[feKey]
-
-        return rt_similarity_score, _target_col
+        return _target_col
 
     try:
 
@@ -192,24 +190,18 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
             current_row = 0
             _key_exchange = {}
             for index, row in df_sheet.iterrows():
-                t_sim, t_target_col = _match_row(row)
-                if t_sim > _match_head_sim:
-                    _match_head_sim = t_sim
-                    _match_head_row = index
-                    _key_exchange = t_target_col
+                t_target_col = _match_row(row)
+                _match_head_row = index
+                _key_exchange = t_target_col
                 current_row = current_row + 1
-                print("t_sim", t_sim)
-                if current_row > 10 or t_sim > 25:
+                if all(col in _key_exchange.keys() for col in _Required_Columns) or current_row > 10:
                     break
 
             print("_match_head_row", _match_head_row)
             print(_key_exchange)
 
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
-            # 假设表头包含这些字段
-            # required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
-            required_columns = ["所属单体", "名称", "规格", "单位", "数量"]
-            if all(col in _key_exchange.keys() for col in required_columns):  # 判断要求的字段是否都在识别结果中能找到
+            if all(col in _key_exchange.keys() for col in _Required_Columns):  # 判断要求的字段是否都在识别结果中能找到
                 # 找到目标表格
                 last_individual = ""
                 last_EM = None
