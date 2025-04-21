@@ -2,7 +2,6 @@ from fuzzychinese import FuzzyChineseMatch
 from fuzzywuzzy import process
 import re  # 正则表达式
 
-
 # import pandas as pd
 
 # 定义目标词汇列表
@@ -65,7 +64,9 @@ material_type = ["管配件", "阀门", "设备", "材料"]
 
 
 def fuzzy_match_EM(pEquipmentMaterial):
-    rtMaterial, score = process.extractOne(pEquipmentMaterial.material, material_fittings)  # 先匹配材质
+    rtMaterial, score = "", 0.00
+    if pEquipmentMaterial.material != "":
+        rtMaterial, score = process.extractOne(pEquipmentMaterial.material, material_fittings)  # 先匹配材质
     rtBest_match = ""
     rtFlange = 0
     rtScore = 0
@@ -108,7 +109,6 @@ def fuzzy_match_EM(pEquipmentMaterial):
             rtBest_match = best_match
             rtScore = score
             rtType = "阀门"
-
 
     return rtBest_match, rtFlange, rtMaterial, rtScore, rtType
 

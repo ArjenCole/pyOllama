@@ -208,7 +208,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
             df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
             # 假设表头包含这些字段
             # required_columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
-            required_columns = ["所属单体", "名称", "规格", "材料", "单位", "数量"]
+            required_columns = ["所属单体", "名称", "规格", "单位", "数量"]
             if all(col in _key_exchange.keys() for col in required_columns):  # 判断要求的字段是否都在识别结果中能找到
                 # 找到目标表格
                 last_individual = ""
@@ -253,14 +253,22 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                             tSp = tSpList[i]
                         else:
                             tSp = tSpList[len(tSpList) - 1]
+                        tMaterial = ""
+                        if "材料" in _key_exchange.keys():
+                            if pd.notna(row.iloc[_key_exchange["材料"]]):
+                                tMaterial = str(row.iloc[_key_exchange["材料"]])
+                        tRemark = ""
+                        if "备注" in _key_exchange.keys():
+                            if pd.notna(row.iloc[_key_exchange["备注"]]):
+                                    tRemark = str(row.iloc[_key_exchange["备注"]])
                         # 创建设备材料对象
                         tEM = EquipmentMaterial(
                             name=str(tEMname),
                             specification=str(tSp),
-                            material=str(row.iloc[_key_exchange["材料"]]),
+                            material=tMaterial,
                             unit=str(row.iloc[_key_exchange["单位"]]),
                             quantity=tQ if pd.notna(tQ) else 0.0,
-                            remarks=str(row.iloc[_key_exchange["备注"]]) if pd.notna(row.iloc[_key_exchange["备注"]]) else ""
+                            remarks=tRemark
                         )
                         # 将设备材料添加到对应单体的列表中
                         if individual not in result_dict:
