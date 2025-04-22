@@ -279,7 +279,7 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
         raise Exception(f"处理Excel文件时出错: {str(e)}")
 
 
-def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginalFilename: str) -> str:
+def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilename: str) -> str:
     _individual_sum_row = {}
     # 写入总表
     def write_to_excle_summary():
@@ -344,7 +344,7 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
         current_row = 8
 
         # 写入每个key，并在key之间添加3个空行
-        for feIndivName in pEquipmentDict.keys():
+        for feIndivName in pEMDict.keys():
             # 写入key
             cell = worksheet.cell(row=current_row, column=name_col_idx)
             cell.value = feIndivName
@@ -401,7 +401,7 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
 
         # =============================================设备材料表================================================================
         category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
-        for feIndivName in pEquipmentDict.keys():
+        for feIndivName in pEMDict.keys():
             for feSuffix in category.keys():
                 # 创建第二个工作表（设备材料表）
                 template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
@@ -445,7 +445,7 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
 
                 current_row = 8
 
-                for feEM in pEquipmentDict[feIndivName]:
+                for feEM in pEMDict[feIndivName]:
                     tBM, tFlange, tMaterial, tScore, tType = fuzzy_match_EM(feEM)
                     tResult = extract_specifications(feEM.specification)
                     dn1 = 0
