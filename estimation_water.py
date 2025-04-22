@@ -173,63 +173,61 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
     try:
 
         # 使用 openpyxl 引擎读取 Excel 文件
-        excel_file = pd.ExcelFile(pFilePath, engine='openpyxl')
+        tExcelFile = pd.ExcelFile(pFilePath, engine='openpyxl')
 
-        result_dict = {}
-        total_sheets = len(excel_file.sheet_names)
+        rtDict = {}
+        tSheetsCount = len(tExcelFile.sheet_names)
 
         # 遍历所有工作表
-        for feSheetIndex, feSheetName in enumerate(excel_file.sheet_names):
-            progress = 10 + (feSheetIndex / total_sheets) * 60  # 10-70% 的进度
+        for feSheetIndex, feSheetName in enumerate(tExcelFile.sheet_names):
+            progress = 10 + (feSheetIndex / tSheetsCount) * 60  # 10-70% 的进度
             _stage_update(progress, f'正在处理工作表: {feSheetName}……', pSessionId, pSocketio)
 
-            df_sheet = pd.read_excel(excel_file, sheet_name=feSheetName, engine='openpyxl', header=None)
-            _match_head_row = 0
-            _match_head_sim = 0.0
-            current_row = 0
+            tDFSheet = pd.read_excel(tExcelFile, sheet_name=feSheetName, engine='openpyxl', header=None)
+            tMatchHeadRow = 0
+            tCurrentRow = 0
             _key_exchange = {}
-            for feRowIndex, feRow in df_sheet.iterrows():
-                t_target_col = _match_row(feRow)
-                _match_head_row = feRowIndex
-                _key_exchange = t_target_col
-                current_row = current_row + 1
-                if all(col in _key_exchange.keys() for col in _REQUIRED_COLUMNS) or current_row > 10:
+            for feRowIndex, feRow in tDFSheet.iterrows():
+                tTargetCol = _match_row(feRow)
+                tMatchHeadRow = feRowIndex
+                _key_exchange = tTargetCol
+                tCurrentRow = tCurrentRow + 1
+                if all(col in _key_exchange.keys() for col in _REQUIRED_COLUMNS) or tCurrentRow > 10:
                     break
 
-            print("_match_head_row", _match_head_row)
+            print("tMatchHeadRow", tMatchHeadRow)
             print(_key_exchange)
 
-            df_sheet = pd.read_excel(excel_file, sheet_name=feSheetName, engine='openpyxl', header=_match_head_row)
+            tDFSheet = pd.read_excel(tExcelFile, sheet_name=feSheetName, engine='openpyxl', header=tMatchHeadRow)
             if all(col in _key_exchange.keys() for col in _REQUIRED_COLUMNS):  # 判断要求的字段是否都在识别结果中能找到
                 # 找到目标表格
-                last_individual = ""
-                last_EM = None
-                total_rows = len(df_sheet)
+                tLastIndividual = ""
+                tLastEM = None
 
-                for feRowIndex, (_, feRow) in enumerate(df_sheet.iterrows()):
+                for feRowIndex, (_, feRow) in enumerate(tDFSheet.iterrows()):
                     if "所属单体" not in _key_exchange.keys():
-                        individual = feSheetName
+                        tIndividual = feSheetName
                     else:
                         # 处理单体单元格合并情况
-                        individual = feRow.iloc[_key_exchange["所属单体"]]
-                    if pd.isna(individual):
-                        if last_individual == "":
+                        tIndividual = feRow.iloc[_key_exchange["所属单体"]]
+                    if pd.isna(tIndividual):
+                        if tLastIndividual == "":
                             continue
                         else:
-                            individual = last_individual
+                            tIndividual = tLastIndividual
                     else:
-                        last_individual = individual
+                        tLastIndividual = tIndividual
                     # 处理名称单元格合并情况
 
                     tEMname = feRow.iloc[_key_exchange["名称"]]
                     if pd.isna(tEMname):
                         if pd.isna(feRow.iloc[_key_exchange["数量"]]):
-                            if last_EM is not None:
-                                last_EM.specification += str(feRow.iloc[_key_exchange["规格"]])
+                            if tLastEM is not None:
+                                tLastEM.specification += str(feRow.iloc[_key_exchange["规格"]])
                             continue
                         else:
-                            if last_EM is not None:
-                                tEMname = last_EM.name
+                            if tLastEM is not None:
+                                tEMname = tLastEM.name
                             else:
                                 continue
 
@@ -265,12 +263,12 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
                             remarks=tRemark
                         )
                         # 将设备材料添加到对应单体的列表中
-                        if individual not in result_dict:
-                            result_dict[individual] = []
-                        result_dict[individual].append(tEM)
-                        last_EM = tEM
+                        if tIndividual not in rtDict:
+                            rtDict[tIndividual] = []
+                        rtDict[tIndividual].append(tEM)
+                        tLastEM = tEM
 
-        return result_dict
+        return rtDict
 
         # raise ValueError("未找到符合要求的设备材料表")
 
