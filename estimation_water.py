@@ -283,13 +283,13 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
     _individual_sum_row = {}
     # 写入总表
     def write_to_excle_summary():
-        def cell_format(pWorksheet, pTemplate_ws, pCurrent_row, name_col_idx, sum_col_idx, pValue):
-            pCell = pWorksheet.cell(row=pCurrent_row, column=name_col_idx)
+        def cell_format(pWorkSheet, pTemplateWS, pCurrentRow, pNameColIdx, pSumColIdx, pValue):
+            pCell = pWorkSheet.cell(row=pCurrentRow, column=pNameColIdx)
             pCell.value = pValue
             pCell.alignment = Alignment(horizontal='right', vertical='center')
-            cell = pWorksheet.cell(row=pCurrent_row, column=sum_col_idx)
-            cell.value = f"=SUM(D{pCurrent_row}:G{pCurrent_row})"
-            row_formate(pWorksheet, pTemplate_ws, pCurrent_row)
+            cell = pWorkSheet.cell(row=pCurrentRow, column=pSumColIdx)
+            cell.value = f"=SUM(D{pCurrentRow}:G{pCurrentRow})"
+            row_formate(pWorkSheet, pTemplateWS, pCurrentRow)
 
         def row_formate(pWorksheet, pTemplate_ws, pRow):
             pWorksheet.row_dimensions[pRow].height = pTemplate_ws.row_dimensions[7].height  # 调整行高
