@@ -206,7 +206,8 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
 
                 for feRowIndex, (_, feRow) in enumerate(tDFSheet.iterrows()):
                     if "所属单体" not in _key_exchange.keys():
-                        tIndividual = feSheetName
+                        tIndividual = (feSheetName.replace("gpj", "").replace("GPJ", "").replace("sb", "")
+                                       .replace("SB", "").replace("管配件", "").replace("设备", "").replace(" ", ""))
                     else:
                         # 处理单体单元格合并情况
                         tIndividual = feRow.iloc[_key_exchange["所属单体"]]
