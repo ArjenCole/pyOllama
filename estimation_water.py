@@ -301,12 +301,12 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
         worksheet = writer.sheets['总表']  # 获取工作表对象
         # 复制模板的前7行格式
-        for row in range(1, 8):  # 复制前7行
-            for col in range(1, len(template_ws[1]) + 1):
+        for feRow in range(1, 8):  # 复制前7行
+            for feCol in range(1, len(template_ws[1]) + 1):
                 # 获取模板单元格
-                template_cell = template_ws.cell(row=row, column=col)
+                template_cell = template_ws.cell(row=feRow, column=feCol)
                 # 获取目标单元格
-                target_cell = worksheet.cell(row=row, column=col)
+                target_cell = worksheet.cell(row=feRow, column=feCol)
 
                 # 复制单元格值
                 target_cell.value = template_cell.value
@@ -330,13 +330,13 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
                 worksheet.merge_cells(str(merged_range))
         # 复制列宽
-        for col in range(1, len(template_ws[1]) + 1):
-            column_letter = get_column_letter(col)
+        for feCol in range(1, len(template_ws[1]) + 1):
+            column_letter = get_column_letter(feCol)
             worksheet.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
             # print(column_letter, template_ws.column_dimensions[column_letter].width)
         # 复制行高
-        for row in range(1, 8):  # 复制前7行的行高
-            worksheet.row_dimensions[row].height = template_ws.row_dimensions[row].height
+        for feRow in range(1, 8):  # 复制前7行的行高
+            worksheet.row_dimensions[feRow].height = template_ws.row_dimensions[feRow].height
         # 找到"工程或费用名称"列的索引
         name_col_idx = 3
         sum_col_idx = 8
@@ -344,10 +344,10 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
         current_row = 8
 
         # 写入每个key，并在key之间添加3个空行
-        for key in equipment_dict.keys():
+        for feIndivName in equipment_dict.keys():
             # 写入key
             cell = worksheet.cell(row=current_row, column=name_col_idx)
-            cell.value = key
+            cell.value = feIndivName
             cell = worksheet.cell(row=current_row, column=sum_col_idx)
             cell.value = f"=SUM(D{current_row}:G{current_row})"
             row_formate(worksheet, template_ws, current_row)
@@ -356,11 +356,11 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
             cell = worksheet.cell(row=current_row, column=5)
-            cell.value = f"=ROUND('{key}gpj'!H{_individual_sum_row[key+'gpj']}/10000,2)"
+            cell.value = f"=ROUND('{feIndivName}gpj'!H{_individual_sum_row[feIndivName + 'gpj']}/10000,2)"
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
             cell = worksheet.cell(row=current_row, column=5)
-            cell.value = f"=ROUND('{key}sb'!H{_individual_sum_row[key + 'sb']}/10000,2)"
+            cell.value = f"=ROUND('{feIndivName}sb'!H{_individual_sum_row[feIndivName + 'sb']}/10000,2)"
             for feCol in range(4, 8):
                 cell = worksheet.cell(row=current_row - 3, column=feCol)
                 cell.value = f"=SUM({get_column_letter(feCol)}{current_row - 2}:{get_column_letter(feCol)}{current_row})"
