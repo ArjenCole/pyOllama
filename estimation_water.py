@@ -389,13 +389,13 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             closest_key = None
 
             # 遍历字典的键
-            for key in dictionary.keys():
+            for feKey in dictionary.keys():
                 # 计算差值
-                diff = abs(key - random_number)
+                diff = abs(feKey - random_number)
                 # 更新最小差值和最接近的键
                 if diff < min_diff:
                     min_diff = diff
-                    closest_key = key
+                    closest_key = feKey
 
             return closest_key
 
