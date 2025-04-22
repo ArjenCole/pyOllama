@@ -297,14 +297,14 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                 if feCol != 3:
                     tCell.alignment = pTemplateWS.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
 
-        worksheet = writer.sheets['总表']  # 获取工作表对象
+        tWorkSheet = writer.sheets['总表']  # 获取工作表对象
         # 复制模板的前7行格式
         for feRow in range(1, 8):  # 复制前7行
             for feCol in range(1, len(template_ws[1]) + 1):
                 # 获取模板单元格
                 template_cell = template_ws.cell(row=feRow, column=feCol)
                 # 获取目标单元格
-                target_cell = worksheet.cell(row=feRow, column=feCol)
+                target_cell = tWorkSheet.cell(row=feRow, column=feCol)
 
                 # 复制单元格值
                 target_cell.value = template_cell.value
@@ -326,50 +326,50 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
         # 复制合并单元格
         for feMergedRange in template_ws.merged_cells.ranges:
             if feMergedRange.min_row <= 7:  # 只复制前7行的合并单元格
-                worksheet.merge_cells(str(feMergedRange))
+                tWorkSheet.merge_cells(str(feMergedRange))
         # 复制列宽
         for feCol in range(1, len(template_ws[1]) + 1):
-            column_letter = get_column_letter(feCol)
-            worksheet.column_dimensions[column_letter].width = template_ws.column_dimensions[column_letter].width
+            tColLetter = get_column_letter(feCol)
+            tWorkSheet.column_dimensions[tColLetter].width = template_ws.column_dimensions[tColLetter].width
             # print(column_letter, template_ws.column_dimensions[column_letter].width)
         # 复制行高
         for feRow in range(1, 8):  # 复制前7行的行高
-            worksheet.row_dimensions[feRow].height = template_ws.row_dimensions[feRow].height
+            tWorkSheet.row_dimensions[feRow].height = template_ws.row_dimensions[feRow].height
         # 找到"工程或费用名称"列的索引
-        name_col_idx = 3
-        sum_col_idx = 8
+        tNameColIdx = 3
+        tSumColIdx = 8
         # 从第8行开始写入数据
-        current_row = 8
+        tCurrentRow = 8
 
         # 写入每个key，并在key之间添加3个空行
         for feIndivName in pEMDict.keys():
             # 写入key
-            cell = worksheet.cell(row=current_row, column=name_col_idx)
-            cell.value = feIndivName
-            cell = worksheet.cell(row=current_row, column=sum_col_idx)
-            cell.value = f"=SUM(D{current_row}:G{current_row})"
-            row_formate(worksheet, template_ws, current_row)
-            current_row += 1
-            cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "土建")
-            current_row += 1
-            cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
-            cell = worksheet.cell(row=current_row, column=5)
-            cell.value = f"=ROUND('{feIndivName}gpj'!H{_individual_sum_row[feIndivName + 'gpj']}/10000,2)"
-            current_row += 1
-            cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
-            cell = worksheet.cell(row=current_row, column=5)
-            cell.value = f"=ROUND('{feIndivName}sb'!H{_individual_sum_row[feIndivName + 'sb']}/10000,2)"
+            tCell = tWorkSheet.cell(row=tCurrentRow, column=tNameColIdx)
+            tCell.value = feIndivName
+            tCell = tWorkSheet.cell(row=tCurrentRow, column=tSumColIdx)
+            tCell.value = f"=SUM(D{tCurrentRow}:G{tCurrentRow})"
+            row_formate(tWorkSheet, template_ws, tCurrentRow)
+            tCurrentRow += 1
+            cell_format(tWorkSheet, template_ws, tCurrentRow, tNameColIdx, tSumColIdx, "土建")
+            tCurrentRow += 1
+            cell_format(tWorkSheet, template_ws, tCurrentRow, tNameColIdx, tSumColIdx, "管配件")
+            tCell = tWorkSheet.cell(row=tCurrentRow, column=5)
+            tCell.value = f"=ROUND('{feIndivName}gpj'!H{_individual_sum_row[feIndivName + 'gpj']}/10000,2)"
+            tCurrentRow += 1
+            cell_format(tWorkSheet, template_ws, tCurrentRow, tNameColIdx, tSumColIdx, "设备")
+            tCell = tWorkSheet.cell(row=tCurrentRow, column=5)
+            tCell.value = f"=ROUND('{feIndivName}sb'!H{_individual_sum_row[feIndivName + 'sb']}/10000,2)"
             for feCol in range(4, 8):
-                cell = worksheet.cell(row=current_row - 3, column=feCol)
-                cell.value = f"=SUM({get_column_letter(feCol)}{current_row - 2}:{get_column_letter(feCol)}{current_row})"
+                tCell = tWorkSheet.cell(row=tCurrentRow - 3, column=feCol)
+                tCell.value = f"=SUM({get_column_letter(feCol)}{tCurrentRow - 2}:{get_column_letter(feCol)}{tCurrentRow})"
 
-            current_row += 1
+            tCurrentRow += 1
 
         for feCol in range(4, 8):
-            cell = worksheet.cell(row=7, column=feCol)
-            cell.value = f"=SUM({get_column_letter(feCol)}{7 + 1}:{get_column_letter(feCol)}{current_row})"
-        cell = worksheet.cell(row=7, column=8)
-        cell.value = "=SUM(D7:G7)"
+            tCell = tWorkSheet.cell(row=7, column=feCol)
+            tCell.value = f"=SUM({get_column_letter(feCol)}{7 + 1}:{get_column_letter(feCol)}{tCurrentRow})"
+        tCell = tWorkSheet.cell(row=7, column=8)
+        tCell.value = "=SUM(D7:G7)"
 
     # 写入单项概算
     def write_to_excel_individual():
