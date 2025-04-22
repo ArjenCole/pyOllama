@@ -278,6 +278,17 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
 
 
 def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilename: str) -> str:
+    # 复制单元格格式
+    def _copy_cell_format(pCell, pTemplateCell):
+        if pTemplateCell.has_style:
+            pCell.font = pTemplateCell.font.copy()  # 复制字体
+            pCell.border = pTemplateCell.border.copy()  # 复制边框
+            pCell.fill = pTemplateCell.fill.copy()  # 复制填充
+            pCell.number_format = pTemplateCell.number_format  # 复制数字格式
+            pCell.protection = pTemplateCell.protection.copy()  # 复制保护
+            pCell.alignment = pTemplateCell.alignment.copy()  # 复制对齐方式
+
+
     _individual_sum_row = {}
     # 写入总表
     def write_to_excle_summary():
@@ -301,28 +312,11 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
         # 复制模板的前7行格式
         for feRow in range(1, 8):  # 复制前7行
             for feCol in range(1, len(template_ws[1]) + 1):
-                # 获取模板单元格
-                template_cell = template_ws.cell(row=feRow, column=feCol)
-                # 获取目标单元格
-                target_cell = tWorkSheet.cell(row=feRow, column=feCol)
+                tTemplateCell = template_ws.cell(row=feRow, column=feCol)  # 获取模板单元格
+                tCell = tWorkSheet.cell(row=feRow, column=feCol)  # 获取目标单元格
+                tCell.value = tTemplateCell.value  # 复制单元格值
+                _copy_cell_format(tCell, tTemplateCell)  # 复制单元格格式
 
-                # 复制单元格值
-                target_cell.value = template_cell.value
-
-                # 复制单元格格式
-                if template_cell.has_style:
-                    # 复制字体
-                    target_cell.font = template_cell.font.copy()
-                    # 复制边框
-                    target_cell.border = template_cell.border.copy()
-                    # 复制填充
-                    target_cell.fill = template_cell.fill.copy()
-                    # 复制数字格式
-                    target_cell.number_format = template_cell.number_format
-                    # 复制保护
-                    target_cell.protection = template_cell.protection.copy()
-                    # 复制对齐方式
-                    target_cell.alignment = template_cell.alignment.copy()
         # 复制合并单元格
         for feMergedRange in template_ws.merged_cells.ranges:
             if feMergedRange.min_row <= 7:  # 只复制前7行的合并单元格
@@ -407,23 +401,15 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                 # 复制Sheet2的前7行格式
                 for feRow in range(1, 8):
                     for feCol in range(1, len(template_ws2[1]) + 1):
-                        template_cell = template_ws2.cell(row=feRow, column=feCol)  # 获取模板单元格
-                        target_cell = worksheet2.cell(row=feRow, column=feCol)  # 获取目标单元格
+                        tTemplateCell = template_ws2.cell(row=feRow, column=feCol)  # 获取模板单元格
+                        tCell = worksheet2.cell(row=feRow, column=feCol)  # 获取目标单元格
 
                         # 复制单元格值
                         if feRow == 3 and feCol == 2:
-                            target_cell.value = feIndivName + " " + category[feSuffix][0]
+                            tCell.value = feIndivName + " " + category[feSuffix][0]
                         else:
-                            target_cell.value = template_cell.value
-
-                        # 复制单元格格式
-                        if template_cell.has_style:
-                            target_cell.font = template_cell.font.copy()  # 复制字体
-                            target_cell.border = template_cell.border.copy()  # 复制边框
-                            target_cell.fill = template_cell.fill.copy()  # 复制填充
-                            target_cell.number_format = template_cell.number_format  # 复制数字格式
-                            target_cell.protection = template_cell.protection.copy()  # 复制保护
-                            target_cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+                            tCell.value = tTemplateCell.value
+                        _copy_cell_format(tCell, tTemplateCell)  # 复制单元格格式
 
                 # 复制Sheet2的合并单元格
                 for feMergedRange in template_ws2.merged_cells.ranges:
@@ -541,13 +527,8 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                     worksheet2.row_dimensions[tCurrentRow].height = template_ws2.row_dimensions[8].height
                     for feCol in range(1, 9):
                         tCell = worksheet2.cell(row=tCurrentRow, column=feCol)
-                        template_cell = template_ws2.cell(row=8, column=feCol)
-                        tCell.font = template_cell.font.copy()  # 复制字体
-                        tCell.border = template_cell.border.copy()  # 复制边框
-                        tCell.fill = template_cell.fill.copy()  # 复制填充
-                        tCell.number_format = template_cell.number_format  # 复制数字格式
-                        tCell.protection = template_cell.protection.copy()  # 复制保护
-                        tCell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+                        tTemplateCell = template_ws2.cell(row=8, column=feCol)
+                        _copy_cell_format(tCell, tTemplateCell)  # 复制单元格格式
 
                     tCurrentRow += 1
 
@@ -555,15 +536,10 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                     worksheet2.row_dimensions[feRow].height = template_ws2.row_dimensions[23].height
                     for feCol in range(1, 9):
                         tCell = worksheet2.cell(row=feRow, column=feCol)
-                        template_cell = template_ws2.cell(row=feRow - tCurrentRow + 23, column=feCol)
-                        tCell.font = template_cell.font.copy()  # 复制字体
-                        tCell.border = template_cell.border.copy()  # 复制边框
-                        tCell.fill = template_cell.fill.copy()  # 复制填充
-                        tCell.number_format = template_cell.number_format  # 复制数字格式
-                        tCell.protection = template_cell.protection.copy()  # 复制保护
-                        tCell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+                        tTemplateCell = template_ws2.cell(row=feRow - tCurrentRow + 23, column=feCol)
+                        _copy_cell_format(tCell, tTemplateCell)  # 复制单元格格式
                         if feCol in [3, 4]:
-                            tCell.value = template_cell.value
+                            tCell.value = tTemplateCell.value
                         elif feCol == 5:
                             if feRow - tCurrentRow not in [0, 6]:
                                 tCell.value = "元"
