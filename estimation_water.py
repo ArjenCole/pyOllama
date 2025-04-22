@@ -407,13 +407,13 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                 template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
                 worksheet2 = workbook.create_sheet(feIndivName + feSuffix)  # 创建新的工作表
                 # 复制Sheet2的前7行格式
-                for row in range(1, 8):
-                    for col in range(1, len(template_ws2[1]) + 1):
-                        template_cell = template_ws2.cell(row=row, column=col)  # 获取模板单元格
-                        target_cell = worksheet2.cell(row=row, column=col)  # 获取目标单元格
+                for feRow in range(1, 8):
+                    for feCol in range(1, len(template_ws2[1]) + 1):
+                        template_cell = template_ws2.cell(row=feRow, column=feCol)  # 获取模板单元格
+                        target_cell = worksheet2.cell(row=feRow, column=feCol)  # 获取目标单元格
 
                         # 复制单元格值
-                        if row == 3 and col == 2:
+                        if feRow == 3 and feCol == 2:
                             target_cell.value = feIndivName + " " + category[feSuffix][0]
                         else:
                             target_cell.value = template_cell.value
@@ -428,20 +428,20 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                             target_cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
 
                 # 复制Sheet2的合并单元格
-                for merged_range in template_ws2.merged_cells.ranges:
-                    if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
-                        worksheet2.merge_cells(str(merged_range))
+                for feMergedRange in template_ws2.merged_cells.ranges:
+                    if feMergedRange.min_row <= 7:  # 只复制前7行的合并单元格
+                        worksheet2.merge_cells(str(feMergedRange))
 
                 # 复制Sheet2的列宽
-                for col in range(1, len(template_ws2[1]) + 1):
-                    column_letter = get_column_letter(col)
+                for feCol in range(1, len(template_ws2[1]) + 1):
+                    column_letter = get_column_letter(feCol)
                     if column_letter in template_ws2.column_dimensions:
                         worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
                             column_letter].width
 
                 # 复制Sheet2的行高
-                for row in range(1, 8):  # 复制前7行的行高
-                    worksheet2.row_dimensions[row].height = template_ws2.row_dimensions[row].height
+                for feRow in range(1, 8):  # 复制前7行的行高
+                    worksheet2.row_dimensions[feRow].height = template_ws2.row_dimensions[feRow].height
 
                 current_row = 8
 
