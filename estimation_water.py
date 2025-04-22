@@ -281,6 +281,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
 
 
 def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_filename: str) -> str:
+    _individual_sum_row = {}
     # 写入总表
     def write_to_excle_summary():
         def cell_format(pWorksheet, pTemplate_ws, pCurrent_row, name_col_idx, sum_col_idx, pValue):
@@ -356,7 +357,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "管配件")
             cell = worksheet.cell(row=current_row, column=5)
-            cell.value = f"=ROUND('{key}gpj'!H36/10000,2)"
+            cell.value = f"=ROUND('{key}gpj'!H{_individual_sum_row[key+'gpj']}/10000,2)"
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
 
@@ -585,7 +586,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 Cell.value = f"=SUM(H{feRow - 2}:H{feRow - 1})"
                 Cell = worksheet2.cell(row=4, column=2)
                 Cell.value = f'="估算价值(元)："&ROUND(H{current_row + 5},0)'
-
+                _individual_sum_row[key + feSheetname] = current_row + 5
     #  函数本体从这里开始执行
     try:
         timestamp = time.strftime("%y%m%d%H%M%S")  # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
