@@ -121,13 +121,13 @@ def _stage_update(pPercent, pStage, pSessionId=None, pSocketio=None):
     time.sleep(0)
 
 
-def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[str, List[EquipmentMaterial]]:
+def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[str, List[EquipmentMaterial]]:
     """
     处理Excel文件，提取设备材料表信息
     Args:
-        file_path: Excel文件路径
-        session_id: 会话ID，用于更新进度
-        socketio: SocketIO实例，用于进度更新
+        pFilePath: Excel文件路径
+        pSessionId: 会话ID，用于更新进度
+        pSocketio: SocketIO实例，用于进度更新
     Returns:
         以所属单体为key，设备材料列表为value的字典
     """
@@ -173,7 +173,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
     try:
 
         # 使用 openpyxl 引擎读取 Excel 文件
-        excel_file = pd.ExcelFile(file_path, engine='openpyxl')
+        excel_file = pd.ExcelFile(pFilePath, engine='openpyxl')
 
         result_dict = {}
         total_sheets = len(excel_file.sheet_names)
@@ -181,7 +181,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
         # 遍历所有工作表
         for feSheetIndex, feSheetName in enumerate(excel_file.sheet_names):
             progress = 10 + (feSheetIndex / total_sheets) * 60  # 10-70% 的进度
-            _stage_update(progress, f'正在处理工作表: {feSheetName}……', session_id, socketio)
+            _stage_update(progress, f'正在处理工作表: {feSheetName}……', pSessionId, pSocketio)
 
             df_sheet = pd.read_excel(excel_file, sheet_name=feSheetName, engine='openpyxl', header=None)
             _match_head_row = 0
@@ -275,7 +275,7 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
         # raise ValueError("未找到符合要求的设备材料表")
 
     except Exception as e:
-        _stage_update(0, f"处理Excel文件时出错: {str(e)}", session_id, socketio)
+        _stage_update(0, f"处理Excel文件时出错: {str(e)}", pSessionId, pSocketio)
         raise Exception(f"处理Excel文件时出错: {str(e)}")
 
 
