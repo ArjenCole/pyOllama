@@ -50,11 +50,10 @@ def atlas():
         df = pd.read_excel(tXls, sheet_name=feSheetName, header=0, index_col=0)
         # 创建一个字典，用于存储每种管配件的每米重量
         # 遍历表格，提取每米重量
-        for index, row in df.iterrows():
-            # 遍历 row 中的每一个单元格
-            dn1 = 0
-            dn2 = 0
-            for column_name, value in row.items():
+        for _, feRow in df.iterrows():
+            # 遍历 feRow 中的每一个单元格
+            dn1, dn2 = 0, 0
+            for column_name, value in feRow.items():
                 if column_name == "管径1":
                     dn1 = int(value)
                 elif column_name == "管径2":
@@ -82,9 +81,9 @@ def atlas():
 
     # 读取阀门价格表
     df = pd.read_excel("templates/250410阀门.xlsx", header=0, index_col=0)
-    for index, row in df.iterrows():
+    for _, feRow in df.iterrows():
         dn1 = 0
-        for column_name, value in row.items():
+        for column_name, value in feRow.items():
             if column_name == "管径1":
                 dn1 = int(value)
             else:
@@ -92,9 +91,9 @@ def atlas():
                     Atlas_Valve[column_name] = {dn1: value}
     # 读取设备价格表
     df = pd.read_excel("templates/250410设备.xlsx", header=0, index_col=0)
-    for index, row in df.iterrows():
+    for _, feRow in df.iterrows():
         tName = ""
-        for column_name, value in row.items():
+        for column_name, value in feRow.items():
             if pd.notna(value):
                 if column_name == "设备名称":
                     tName = value
