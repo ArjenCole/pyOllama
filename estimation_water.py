@@ -326,9 +326,9 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
                     # 复制对齐方式
                     target_cell.alignment = template_cell.alignment.copy()
         # 复制合并单元格
-        for merged_range in template_ws.merged_cells.ranges:
-            if merged_range.min_row <= 7:  # 只复制前7行的合并单元格
-                worksheet.merge_cells(str(merged_range))
+        for feMergedRange in template_ws.merged_cells.ranges:
+            if feMergedRange.min_row <= 7:  # 只复制前7行的合并单元格
+                worksheet.merge_cells(str(feMergedRange))
         # 复制列宽
         for feCol in range(1, len(template_ws[1]) + 1):
             column_letter = get_column_letter(feCol)
