@@ -375,11 +375,11 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
 
     # 写入单项概算
     def write_to_excel_individual():
-        def find_closest_key(random_number, dictionary):
+        def find_closest_key(pRandNum, pDict):
             """
             找到与随机整数差值最小的字典键。
             参数:
-                random_number (int): 随机整数
+                pRandNum (int): 随机整数
                 dictionary (dict): 字典，键是整数
             返回:
                 int: 与随机整数差值最小的键
@@ -389,9 +389,9 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
             closest_key = None
 
             # 遍历字典的键
-            for feKey in dictionary.keys():
+            for feKey in pDict.keys():
                 # 计算差值
-                diff = abs(feKey - random_number)
+                diff = abs(feKey - pRandNum)
                 # 更新最小差值和最接近的键
                 if diff < min_diff:
                     min_diff = diff
