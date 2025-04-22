@@ -445,31 +445,25 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                 for feEM in pEMDict[feIndivName]:
                     tBM, tFlange, tMaterial, tScore, tType = fuzzy_match_EM(feEM)
                     tResult = extract_specifications(feEM.specification)
-                    dn1 = 0
-                    dn2 = 0
+                    dn1, dn2 = 0, 0
                     tValue = ""
-                    tPrice = 1
-                    tPriceFlange = 1
+                    tPrice, tPriceFlange = 1, 1
                     tDensity = ""  # 与铁的容重比
                     tAtlas = Atlas_PipeFittingsQ235A
                     if tMaterial in ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E"]:
-                        tPrice = 1
-                        tPriceFlange = 1
+                        tPrice, tPriceFlange = 1, 1
                         tDensity = ""
                         tAtlas = Atlas_PipeFittingsQ235A
                     elif tMaterial in ["SS304"]:
-                        tPrice = 3
-                        tPriceFlange = 1
+                        tPrice, tPriceFlange = 3, 1
                         tDensity = "*7.93/7.85"
                         tAtlas = Atlas_PipeFittingsQ235A
                     elif tMaterial in ["SS316"]:
-                        tPrice = 5
-                        tPriceFlange = 1
+                        tPrice, tPriceFlange = 5, 1
                         tDensity = "*8.0/7.85"
                         tAtlas = Atlas_PipeFittingsQ235A
                     elif tMaterial in ["球铁"]:
-                        tPrice = 7
-                        tPriceFlange = 0
+                        tPrice, tPriceFlange = 7, 0
                         tAtlas = Atlas_PipeFittingsDuctileIron
 
                     if len(tResult["管径"]) > 0:
@@ -482,8 +476,7 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                             tDic = tAtlas[tBM][find_closest_key(dn1, tAtlas[tBM])]
                             tFlangeDn1 = find_closest_key(dn1, tAtlas["法兰"])
                             tFlangeWeight = tAtlas["法兰"][tFlangeDn1][tFlangeDn1]
-                            tCircleStr = ""
-                            tLengthStr = ""
+                            tCircleStr, tLengthStr = "", ""
 
                             if tBM in ["直管", "套管",
                                        "穿墙套管", "柔性防水套管A型Ⅰ型", "柔性防水套管A型Ⅱ型", "柔性防水套管B型Ⅰ型",
