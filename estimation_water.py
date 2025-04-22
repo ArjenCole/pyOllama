@@ -144,31 +144,31 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
     _REQUIRED_COLUMNS = ["名称", "规格", "单位", "数量"]
 
     def _match_row(pRow):
-        _target_col = {}
-        _target_sim = {}
+        tTargetCol = {}
+        tTargetSim = {}
         for feKey in _TARGET_WORDS:
-            _target_sim[feKey] = 0.0
+            tTargetSim[feKey] = 0.0
         for feCol in range(0, len(pRow)):
 
             feCellValue = pRow[feCol]
             if pd.isna(feCellValue):
                 continue
             # print(feCol, feCellValue)
-            _match_key = None
-            _match_sim = 0.0
+            tMatchKey = None
+            tMatchSim = 0.0
             for feKey in _TARGET_WORDS.keys():  # 与目标字段逐个匹配
-                _matched_word, _similarity_score = fuzzy_match(feCellValue, _TARGET_WORDS[feKey])
+                tMatchedWord, tSimilarityScore = fuzzy_match(feCellValue, _TARGET_WORDS[feKey])
                 # print("match", _matched_word, _similarity_score)
-                if _similarity_score[0] > _match_sim:
-                    _match_sim = _similarity_score[0]
-                    _match_key = feKey
+                if tSimilarityScore[0] > tMatchSim:
+                    tMatchSim = tSimilarityScore[0]
+                    tMatchKey = feKey
             # print("ks", feCellValue, _match_key, _match_sim)
-            if _match_key is not None:
-                if _match_sim > max(_target_sim[_match_key], 0.8):
-                    _target_col[_match_key] = feCol
-                    _target_sim[_match_key] = _match_sim
+            if tMatchKey is not None:
+                if tMatchSim > max(tTargetSim[tMatchKey], 0.8):
+                    tTargetCol[tMatchKey] = feCol
+                    tTargetSim[tMatchKey] = tMatchSim
 
-        return _target_col
+        return tTargetCol
 
     try:
 
