@@ -291,13 +291,13 @@ def write_to_excel(pEquipmentDict: Dict[str, List[EquipmentMaterial]], pOriginal
             cell.value = f"=SUM(D{pCurrentRow}:G{pCurrentRow})"
             row_formate(pWorkSheet, pTemplateWS, pCurrentRow)
 
-        def row_formate(pWorksheet, pTemplate_ws, pRow):
-            pWorksheet.row_dimensions[pRow].height = pTemplate_ws.row_dimensions[7].height  # 调整行高
+        def row_formate(pWorkSheet, pTemplateWS, pRow):
+            pWorkSheet.row_dimensions[pRow].height = pTemplateWS.row_dimensions[7].height  # 调整行高
             for feCol in range(1, 13):
-                tCell = pWorksheet.cell(row=pRow, column=feCol)
-                tCell.border = pTemplate_ws.cell(row=8, column=feCol).border.copy()  # 使用模板的边框样式
+                tCell = pWorkSheet.cell(row=pRow, column=feCol)
+                tCell.border = pTemplateWS.cell(row=8, column=feCol).border.copy()  # 使用模板的边框样式
                 if feCol != 3:
-                    tCell.alignment = pTemplate_ws.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
+                    tCell.alignment = pTemplateWS.cell(row=8, column=feCol).alignment.copy()  # 使用模板的对齐方式
 
         worksheet = writer.sheets['总表']  # 获取工作表对象
         # 复制模板的前7行格式
