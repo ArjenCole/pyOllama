@@ -93,14 +93,14 @@ def fuzzy_match_EM(pEquipmentMaterial):
                 rtBest_match = best_match
                 rtScore = score
                 rtType = "管配件"
-    elif rtMaterial == "nan":
-        match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Equipment.keys())
-        if match_result is not None:  # 检查是否找到匹配
-            best_match, score = match_result
-            if score > rtScore and score > 70:  # 设备必须匹配度高一些才确认，反正后面有功率识别兜底
-                rtBest_match = best_match
-                rtScore = score
-                rtType = "设备"
+
+    match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Equipment.keys())
+    if match_result is not None:  # 检查是否找到匹配
+        best_match, score = match_result
+        if score > rtScore and score > 70:  # 设备必须匹配度高一些才确认，反正后面有功率识别兜底
+            rtBest_match = best_match
+            rtScore = score
+            rtType = "设备"
 
     match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
     if match_result is not None:  # 检查是否找到匹配
