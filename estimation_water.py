@@ -110,9 +110,9 @@ def allowed_file(pFilename):
 
 
 def safe_filename(pFilename: str) -> str:
-    name, ext = os.path.splitext(pFilename)  # 获取文件扩展名
-    safe_name = name.replace('/', '_').replace('\\', '_')  # 替换不安全的字符，但保留中文
-    return safe_name + ext  # 重新组合文件名和扩展名
+    tName, tExt = os.path.splitext(pFilename)  # 获取文件扩展名
+    rtSafeName = tName.replace('/', '_').replace('\\', '_')  # 替换不安全的字符，但保留中文
+    return rtSafeName + tExt  # 重新组合文件名和扩展名
 
 
 def _stage_update(pPercent, pStage, pSessionId=None, pSocketio=None):
