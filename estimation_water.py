@@ -254,13 +254,17 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
                         if "备注" in _key_exchange.keys():
                             if pd.notna(feRow.iloc[_key_exchange["备注"]]):
                                 tRemark = str(feRow.iloc[_key_exchange["备注"]])
+                        if pd.notna(feRow.iloc[_key_exchange["单位"]]):
+                            tUnit = str(feRow.iloc[_key_exchange["单位"]])
+                        else:
+                            tUnit = ""
                         # 创建设备材料对象
                         tEM = EquipmentMaterial(
                             name=str(tEMname),
                             specification=str(tSp),
                             material=tMaterial,
-                            unit=str(feRow.iloc[_key_exchange["单位"]]),
-                            quantity=tQ if pd.notna(tQ) else 0.0,
+                            unit=tUnit,
+                            quantity=tQ if (pd.notna(tQ) and tQ != "nan") else 0.0,
                             remarks=tRemark
                         )
                         # 将设备材料添加到对应单体的列表中
