@@ -104,20 +104,20 @@ def atlas():
     init_atlas(Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve, Atlas_Equipment)
 
 
-def allowed_file(filename):
+def allowed_file(pFilename):
     """检查文件类型是否允许"""
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in pFilename and pFilename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def safe_filename(filename: str) -> str:
-    name, ext = os.path.splitext(filename)  # 获取文件扩展名
+def safe_filename(pFilename: str) -> str:
+    name, ext = os.path.splitext(pFilename)  # 获取文件扩展名
     safe_name = name.replace('/', '_').replace('\\', '_')  # 替换不安全的字符，但保留中文
     return safe_name + ext  # 重新组合文件名和扩展名
 
 
-def _stage_update(p_percent, p_stage, p_session_id=None, socketio=None):
-    if socketio:
-        socketio.emit('progress', {'progress': p_percent, 'stage': p_stage, 'sessionId': p_session_id})
+def _stage_update(pPercent, pStage, pSessionId=None, pSocketio=None):
+    if pSocketio:
+        pSocketio.emit('progress', {'progress': pPercent, 'stage': pStage, 'sessionId': pSessionId})
     time.sleep(0)
 
 
@@ -143,14 +143,14 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
     # _Required_Columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
     _Required_Columns = ["名称", "规格", "单位", "数量"]
 
-    def _match_row(p_row):
+    def _match_row(pRow):
         _target_col = {}
         _target_sim = {}
         for feKey in _Target_Words:
             _target_sim[feKey] = 0.0
-        for feCol in range(0, len(p_row)):
+        for feCol in range(0, len(pRow)):
 
-            feCellValue = p_row[feCol]
+            feCellValue = pRow[feCol]
             if pd.isna(feCellValue):
                 continue
             # print(feCol, feCellValue)
