@@ -53,31 +53,31 @@ def atlas():
         for _, feRow in df.iterrows():
             # 遍历 feRow 中的每一个单元格
             dn1, dn2 = 0, 0
-            for column_name, value in feRow.items():
-                if column_name == "管径1":
-                    dn1 = int(value)
-                elif column_name == "管径2":
-                    dn2 = int(value)
+            for feColName, feValue in feRow.items():
+                if feColName == "管径1":
+                    dn1 = int(feValue)
+                elif feColName == "管径2":
+                    dn2 = int(feValue)
                 else:
-                    if pd.notna(value):  # 使用 pd.notna() 判断值是否不是 NaN
+                    if pd.notna(feValue):  # 使用 pd.notna() 判断值是否不是 NaN
                         if feSheetName == "Q235A":
                             # 如果 column_name 不在 Atlas_PipeFittingsQ235A 中，初始化一个空字典
-                            if column_name not in Atlas_PipeFittingsQ235A:
-                                Atlas_PipeFittingsQ235A[column_name] = {}
+                            if feColName not in Atlas_PipeFittingsQ235A:
+                                Atlas_PipeFittingsQ235A[feColName] = {}
                             # 如果 dn1 不在 Atlas_PipeFittingsQ235A[column_name] 中，初始化一个空字典
-                            if dn1 not in Atlas_PipeFittingsQ235A[column_name]:
-                                Atlas_PipeFittingsQ235A[column_name][dn1] = {}
+                            if dn1 not in Atlas_PipeFittingsQ235A[feColName]:
+                                Atlas_PipeFittingsQ235A[feColName][dn1] = {}
                             # 存储 dn2 和对应的重量
-                            Atlas_PipeFittingsQ235A[column_name][dn1][dn2] = value
+                            Atlas_PipeFittingsQ235A[feColName][dn1][dn2] = feValue
                         elif feSheetName == "球铁":
                             # 如果 column_name 不在 Atlas_PipeFittingsDuctileIron 中，初始化一个空字典
-                            if column_name not in Atlas_PipeFittingsDuctileIron:
-                                Atlas_PipeFittingsDuctileIron[column_name] = {}
+                            if feColName not in Atlas_PipeFittingsDuctileIron:
+                                Atlas_PipeFittingsDuctileIron[feColName] = {}
                             # 如果 dn1 不在 Atlas_PipeFittingsDuctileIron[column_name] 中，初始化一个空字典
-                            if dn1 not in Atlas_PipeFittingsDuctileIron[column_name]:
-                                Atlas_PipeFittingsDuctileIron[column_name][dn1] = {}
+                            if dn1 not in Atlas_PipeFittingsDuctileIron[feColName]:
+                                Atlas_PipeFittingsDuctileIron[feColName][dn1] = {}
                             # 存储 dn2 和对应的重量
-                            Atlas_PipeFittingsDuctileIron[column_name][dn1][dn2] = value
+                            Atlas_PipeFittingsDuctileIron[feColName][dn1][dn2] = feValue
 
     # 读取阀门价格表
     df = pd.read_excel("templates/250410阀门.xlsx", header=0, index_col=0)
