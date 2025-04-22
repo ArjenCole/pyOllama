@@ -360,7 +360,8 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
             cell.value = f"=ROUND('{key}gpj'!H{_individual_sum_row[key+'gpj']}/10000,2)"
             current_row += 1
             cell_format(worksheet, template_ws, current_row, name_col_idx, sum_col_idx, "设备")
-
+            cell = worksheet.cell(row=current_row, column=5)
+            cell.value = f"=ROUND('{key}sb'!H{_individual_sum_row[key + 'sb']}/10000,2)"
             for feCol in range(4, 8):
                 cell = worksheet.cell(row=current_row - 3, column=feCol)
                 cell.value = f"=SUM({get_column_letter(feCol)}{current_row - 2}:{get_column_letter(feCol)}{current_row})"
