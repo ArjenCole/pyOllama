@@ -177,20 +177,20 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
 
         result_dict = {}
         total_sheets = len(excel_file.sheet_names)
-        
+
         # 遍历所有工作表
-        for sheet_index, sheet_name in enumerate(excel_file.sheet_names):
-            progress = 10 + (sheet_index / total_sheets) * 60  # 10-70% 的进度
-            _stage_update(progress, f'正在处理工作表: {sheet_name}……', session_id, socketio)
-            
-            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=None)
+        for feSheetIndex, feSheetName in enumerate(excel_file.sheet_names):
+            progress = 10 + (feSheetIndex / total_sheets) * 60  # 10-70% 的进度
+            _stage_update(progress, f'正在处理工作表: {feSheetName}……', session_id, socketio)
+
+            df_sheet = pd.read_excel(excel_file, sheet_name=feSheetName, engine='openpyxl', header=None)
             _match_head_row = 0
             _match_head_sim = 0.0
             current_row = 0
             _key_exchange = {}
-            for index, row in df_sheet.iterrows():
-                t_target_col = _match_row(row)
-                _match_head_row = index
+            for feRowIndex, feRow in df_sheet.iterrows():
+                t_target_col = _match_row(feRow)
+                _match_head_row = feRowIndex
                 _key_exchange = t_target_col
                 current_row = current_row + 1
                 if all(col in _key_exchange.keys() for col in _Required_Columns) or current_row > 10:
@@ -199,19 +199,19 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
             print("_match_head_row", _match_head_row)
             print(_key_exchange)
 
-            df_sheet = pd.read_excel(excel_file, sheet_name=sheet_name, engine='openpyxl', header=_match_head_row)
+            df_sheet = pd.read_excel(excel_file, sheet_name=feSheetName, engine='openpyxl', header=_match_head_row)
             if all(col in _key_exchange.keys() for col in _Required_Columns):  # 判断要求的字段是否都在识别结果中能找到
                 # 找到目标表格
                 last_individual = ""
                 last_EM = None
                 total_rows = len(df_sheet)
-                
-                for row_index, (_, row) in enumerate(df_sheet.iterrows()):
+
+                for feRowIndex, (_, feRow) in enumerate(df_sheet.iterrows()):
                     if "所属单体" not in _key_exchange.keys():
-                        individual = sheet_name
+                        individual = feSheetName
                     else:
                         # 处理单体单元格合并情况
-                        individual = row.iloc[_key_exchange["所属单体"]]
+                        individual = feRow.iloc[_key_exchange["所属单体"]]
                     if pd.isna(individual):
                         if last_individual == "":
                             continue
@@ -221,11 +221,11 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                         last_individual = individual
                     # 处理名称单元格合并情况
 
-                    tEMname = row.iloc[_key_exchange["名称"]]
+                    tEMname = feRow.iloc[_key_exchange["名称"]]
                     if pd.isna(tEMname):
-                        if pd.isna(row.iloc[_key_exchange["数量"]]):
+                        if pd.isna(feRow.iloc[_key_exchange["数量"]]):
                             if last_EM is not None:
-                                last_EM.specification += str(row.iloc[_key_exchange["规格"]])
+                                last_EM.specification += str(feRow.iloc[_key_exchange["规格"]])
                             continue
                         else:
                             if last_EM is not None:
@@ -233,13 +233,13 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                             else:
                                 continue
 
-                    tQList = str(row.iloc[_key_exchange["数量"]]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
-                    tSpStr = str(row.iloc[_key_exchange["规格"]])
+                    tQList = str(feRow.iloc[_key_exchange["数量"]]).split('/')  # 如果有多个规格写在同一行的，例：墙管 DN500/DN300 个 40/91
+                    tSpStr = str(feRow.iloc[_key_exchange["规格"]])
                     tSpList = []
                     if len(tQList) > 1:
                         tSpList = tSpStr.split('/')
                     else:
-                        tSpList.append(str(row.iloc[_key_exchange["规格"]]))
+                        tSpList.append(str(feRow.iloc[_key_exchange["规格"]]))
 
                     for i in range(0, len(tQList)):
                         tQ = tQList[i]
@@ -249,18 +249,18 @@ def process_excel_file(file_path: str, session_id: str, socketio=None) -> Dict[s
                             tSp = tSpList[len(tSpList) - 1]
                         tMaterial = ""
                         if "材料" in _key_exchange.keys():
-                            if pd.notna(row.iloc[_key_exchange["材料"]]):
-                                tMaterial = str(row.iloc[_key_exchange["材料"]])
+                            if pd.notna(feRow.iloc[_key_exchange["材料"]]):
+                                tMaterial = str(feRow.iloc[_key_exchange["材料"]])
                         tRemark = ""
                         if "备注" in _key_exchange.keys():
-                            if pd.notna(row.iloc[_key_exchange["备注"]]):
-                                    tRemark = str(row.iloc[_key_exchange["备注"]])
+                            if pd.notna(feRow.iloc[_key_exchange["备注"]]):
+                                tRemark = str(feRow.iloc[_key_exchange["备注"]])
                         # 创建设备材料对象
                         tEM = EquipmentMaterial(
                             name=str(tEMname),
                             specification=str(tSp),
                             material=tMaterial,
-                            unit=str(row.iloc[_key_exchange["单位"]]),
+                            unit=str(feRow.iloc[_key_exchange["单位"]]),
                             quantity=tQ if pd.notna(tQ) else 0.0,
                             remarks=tRemark
                         )
