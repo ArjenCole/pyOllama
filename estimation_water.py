@@ -282,11 +282,11 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
     # 写入总表
     def write_to_excle_summary():
         def cell_format(pWorkSheet, pTemplateWS, pCurrentRow, pNameColIdx, pSumColIdx, pValue):
-            pCell = pWorkSheet.cell(row=pCurrentRow, column=pNameColIdx)
-            pCell.value = pValue
-            pCell.alignment = Alignment(horizontal='right', vertical='center')
-            cell = pWorkSheet.cell(row=pCurrentRow, column=pSumColIdx)
-            cell.value = f"=SUM(D{pCurrentRow}:G{pCurrentRow})"
+            tCell = pWorkSheet.cell(row=pCurrentRow, column=pNameColIdx)
+            tCell.value = pValue
+            tCell.alignment = Alignment(horizontal='right', vertical='center')
+            tCell = pWorkSheet.cell(row=pCurrentRow, column=pSumColIdx)
+            tCell.value = f"=SUM(D{pCurrentRow}:G{pCurrentRow})"
             row_formate(pWorkSheet, pTemplateWS, pCurrentRow)
 
         def row_formate(pWorkSheet, pTemplateWS, pRow):
