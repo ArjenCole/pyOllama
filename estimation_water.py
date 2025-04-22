@@ -402,11 +402,11 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
         # =============================================设备材料表================================================================
         category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
-        for key in equipment_dict.keys():
-            for feSheetname in category.keys():
+        for feIndName in equipment_dict.keys():
+            for feSuffix in category.keys():
                 # 创建第二个工作表（设备材料表）
                 template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
-                worksheet2 = workbook.create_sheet(key + feSheetname)  # 创建新的工作表
+                worksheet2 = workbook.create_sheet(feIndName + feSuffix)  # 创建新的工作表
                 # 复制Sheet2的前7行格式
                 for row in range(1, 8):
                     for col in range(1, len(template_ws2[1]) + 1):
@@ -415,7 +415,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
                         # 复制单元格值
                         if row == 3 and col == 2:
-                            target_cell.value = key + " " + category[feSheetname][0]
+                            target_cell.value = feIndName + " " + category[feSuffix][0]
                         else:
                             target_cell.value = template_cell.value
 
@@ -446,7 +446,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
 
                 current_row = 8
 
-                for feEM in equipment_dict[key]:
+                for feEM in equipment_dict[feIndName]:
                     tBM, tFlange, tMaterial, tScore, tType = fuzzy_match_EM(feEM)
                     tResult = extract_specifications(feEM.specification)
                     dn1 = 0
@@ -516,7 +516,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                         tType = "设备"
                     if tType == "":
                         tType = "材料"
-                    if tType not in category[feSheetname]:
+                    if tType not in category[feSuffix]:
                         continue
                     Cell = worksheet2.cell(row=current_row, column=2)
                     Cell.value = current_row - 7
@@ -587,7 +587,7 @@ def write_to_excel(equipment_dict: Dict[str, List[EquipmentMaterial]], original_
                                 Cell.value = f"=SUM(H{feRow - 2}:H{feRow - 1})"
                 Cell = worksheet2.cell(row=4, column=2)
                 Cell.value = f'="估算价值(元)："&ROUND(H{current_row + 5},0)'
-                _individual_sum_row[key + feSheetname] = current_row + 5
+                _individual_sum_row[feIndName + feSuffix] = current_row + 5
     #  函数本体从这里开始执行
     try:
         timestamp = time.strftime("%y%m%d%H%M%S")  # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
