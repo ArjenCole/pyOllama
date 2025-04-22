@@ -83,23 +83,23 @@ def atlas():
     df = pd.read_excel("templates/250410阀门.xlsx", header=0, index_col=0)
     for _, feRow in df.iterrows():
         dn1 = 0
-        for column_name, value in feRow.items():
-            if column_name == "管径1":
-                dn1 = int(value)
+        for feColName, feValue in feRow.items():
+            if feColName == "管径1":
+                dn1 = int(feValue)
             else:
-                if pd.notna(value):
-                    Atlas_Valve[column_name] = {dn1: value}
+                if pd.notna(feValue):
+                    Atlas_Valve[feColName] = {dn1: feValue}
     # 读取设备价格表
     df = pd.read_excel("templates/250410设备.xlsx", header=0, index_col=0)
     for _, feRow in df.iterrows():
         tName = ""
-        for column_name, value in feRow.items():
-            if pd.notna(value):
-                if column_name == "设备名称":
-                    tName = value
+        for feColName, feValue in feRow.items():
+            if pd.notna(feValue):
+                if feColName == "设备名称":
+                    tName = feValue
                     Atlas_Equipment[tName] = {}
                 else:
-                    Atlas_Equipment[tName][column_name] = value
+                    Atlas_Equipment[tName][feColName] = feValue
     # print(Atlas_Equipment.keys())
     init_atlas(Atlas_PipeFittingsQ235A, Atlas_PipeFittingsDuctileIron, Atlas_Valve, Atlas_Equipment)
 
