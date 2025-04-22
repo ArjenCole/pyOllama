@@ -432,16 +432,15 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
 
                 # 复制Sheet2的列宽
                 for feCol in range(1, len(template_ws2[1]) + 1):
-                    column_letter = get_column_letter(feCol)
-                    if column_letter in template_ws2.column_dimensions:
-                        worksheet2.column_dimensions[column_letter].width = template_ws2.column_dimensions[
-                            column_letter].width
+                    tColLetter = get_column_letter(feCol)
+                    if tColLetter in template_ws2.column_dimensions:
+                        worksheet2.column_dimensions[tColLetter].width = template_ws2.column_dimensions[tColLetter].width
 
                 # 复制Sheet2的行高
                 for feRow in range(1, 8):  # 复制前7行的行高
                     worksheet2.row_dimensions[feRow].height = template_ws2.row_dimensions[feRow].height
 
-                current_row = 8
+                tCurrentRow = 8
 
                 for feEM in pEMDict[feIndivName]:
                     tBM, tFlange, tMaterial, tScore, tType = fuzzy_match_EM(feEM)
@@ -515,96 +514,96 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                         tType = "材料"
                     if tType not in category[feSuffix]:
                         continue
-                    Cell = worksheet2.cell(row=current_row, column=2)
-                    Cell.value = current_row - 7
-                    Cell = worksheet2.cell(row=current_row, column=3)
-                    Cell.value = feEM.name
-                    Cell = worksheet2.cell(row=current_row, column=4)
+                    tCell = worksheet2.cell(row=tCurrentRow, column=2)
+                    tCell.value = tCurrentRow - 7
+                    tCell = worksheet2.cell(row=tCurrentRow, column=3)
+                    tCell.value = feEM.name
+                    tCell = worksheet2.cell(row=tCurrentRow, column=4)
                     if feEM.material != "nan":
-                        Cell.value = f"{feEM.specification} {feEM.material}"
+                        tCell.value = f"{feEM.specification} {feEM.material}"
                     else:
-                        Cell.value = feEM.specification
-                    Cell = worksheet2.cell(row=current_row, column=5)
-                    Cell.value = feEM.unit
-                    Cell = worksheet2.cell(row=current_row, column=6)
-                    Cell.value = feEM.quantity
-                    Cell = worksheet2.cell(row=current_row, column=7)
-                    Cell.value = str(tValue)
-                    Cell = worksheet2.cell(row=current_row, column=8)
-                    Cell.value = f"=F{current_row}*G{current_row}"
+                        tCell.value = feEM.specification
+                    tCell = worksheet2.cell(row=tCurrentRow, column=5)
+                    tCell.value = feEM.unit
+                    tCell = worksheet2.cell(row=tCurrentRow, column=6)
+                    tCell.value = feEM.quantity
+                    tCell = worksheet2.cell(row=tCurrentRow, column=7)
+                    tCell.value = str(tValue)
+                    tCell = worksheet2.cell(row=tCurrentRow, column=8)
+                    tCell.value = f"=F{tCurrentRow}*G{tCurrentRow}"
 
-                    Cell = worksheet2.cell(row=current_row, column=13)
-                    Cell.value = tBM
-                    Cell = worksheet2.cell(row=current_row, column=12)
-                    Cell.value = tScore
-                    Cell = worksheet2.cell(row=current_row, column=14)
+                    tCell = worksheet2.cell(row=tCurrentRow, column=13)
+                    tCell.value = tBM
+                    tCell = worksheet2.cell(row=tCurrentRow, column=12)
+                    tCell.value = tScore
+                    tCell = worksheet2.cell(row=tCurrentRow, column=14)
                     if tResult["长度"] != 0:
-                        Cell.value = f"DN{dn1}×DN{dn2} L=" + str(tResult["长度"]) + str(tResult["长度单位"])
+                        tCell.value = f"DN{dn1}×DN{dn2} L=" + str(tResult["长度"]) + str(tResult["长度单位"])
                     else:
-                        Cell.value = f"DN{dn1}×DN{dn2}"
+                        tCell.value = f"DN{dn1}×DN{dn2}"
 
-                    Cell = worksheet2.cell(row=current_row, column=17)
-                    Cell.value = str(tType)
+                    tCell = worksheet2.cell(row=tCurrentRow, column=17)
+                    tCell.value = str(tType)
 
-                    worksheet2.row_dimensions[current_row].height = template_ws2.row_dimensions[8].height
+                    worksheet2.row_dimensions[tCurrentRow].height = template_ws2.row_dimensions[8].height
                     for feCol in range(1, 9):
-                        Cell = worksheet2.cell(row=current_row, column=feCol)
+                        tCell = worksheet2.cell(row=tCurrentRow, column=feCol)
                         template_cell = template_ws2.cell(row=8, column=feCol)
-                        Cell.font = template_cell.font.copy()  # 复制字体
-                        Cell.border = template_cell.border.copy()  # 复制边框
-                        Cell.fill = template_cell.fill.copy()  # 复制填充
-                        Cell.number_format = template_cell.number_format  # 复制数字格式
-                        Cell.protection = template_cell.protection.copy()  # 复制保护
-                        Cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+                        tCell.font = template_cell.font.copy()  # 复制字体
+                        tCell.border = template_cell.border.copy()  # 复制边框
+                        tCell.fill = template_cell.fill.copy()  # 复制填充
+                        tCell.number_format = template_cell.number_format  # 复制数字格式
+                        tCell.protection = template_cell.protection.copy()  # 复制保护
+                        tCell.alignment = template_cell.alignment.copy()  # 复制对齐方式
 
-                    current_row += 1
+                    tCurrentRow += 1
 
-                for feRow in range(current_row, current_row + 7):
+                for feRow in range(tCurrentRow, tCurrentRow + 7):
                     worksheet2.row_dimensions[feRow].height = template_ws2.row_dimensions[23].height
                     for feCol in range(1, 9):
-                        Cell = worksheet2.cell(row=feRow, column=feCol)
-                        template_cell = template_ws2.cell(row=feRow - current_row + 23, column=feCol)
-                        Cell.font = template_cell.font.copy()  # 复制字体
-                        Cell.border = template_cell.border.copy()  # 复制边框
-                        Cell.fill = template_cell.fill.copy()  # 复制填充
-                        Cell.number_format = template_cell.number_format  # 复制数字格式
-                        Cell.protection = template_cell.protection.copy()  # 复制保护
-                        Cell.alignment = template_cell.alignment.copy()  # 复制对齐方式
+                        tCell = worksheet2.cell(row=feRow, column=feCol)
+                        template_cell = template_ws2.cell(row=feRow - tCurrentRow + 23, column=feCol)
+                        tCell.font = template_cell.font.copy()  # 复制字体
+                        tCell.border = template_cell.border.copy()  # 复制边框
+                        tCell.fill = template_cell.fill.copy()  # 复制填充
+                        tCell.number_format = template_cell.number_format  # 复制数字格式
+                        tCell.protection = template_cell.protection.copy()  # 复制保护
+                        tCell.alignment = template_cell.alignment.copy()  # 复制对齐方式
                         if feCol in [3, 4]:
-                            Cell.value = template_cell.value
+                            tCell.value = template_cell.value
                         elif feCol == 5:
-                            if feRow - current_row not in [0, 6]:
-                                Cell.value = "元"
+                            if feRow - tCurrentRow not in [0, 6]:
+                                tCell.value = "元"
                         elif feCol == 8:
-                            if feRow - current_row == 1:
-                                Cell.value = f"=SUM(H8:H{feRow - 1})"
-                            elif feRow - current_row in [2, 4]:
-                                Cell.value = f"=H{feRow - 1}*D{feRow}"
-                            elif feRow - current_row in [3, 5]:
-                                Cell.value = f"=SUM(H{feRow - 2}:H{feRow - 1})"
-                Cell = worksheet2.cell(row=4, column=2)
-                Cell.value = f'="估算价值(元)："&ROUND(H{current_row + 5},0)'
-                _individual_sum_row[feIndivName + feSuffix] = current_row + 5
+                            if feRow - tCurrentRow == 1:
+                                tCell.value = f"=SUM(H8:H{feRow - 1})"
+                            elif feRow - tCurrentRow in [2, 4]:
+                                tCell.value = f"=H{feRow - 1}*D{feRow}"
+                            elif feRow - tCurrentRow in [3, 5]:
+                                tCell.value = f"=SUM(H{feRow - 2}:H{feRow - 1})"
+                tCell = worksheet2.cell(row=4, column=2)
+                tCell.value = f'="估算价值(元)："&ROUND(H{tCurrentRow + 5},0)'
+                _individual_sum_row[feIndivName + feSuffix] = tCurrentRow + 5
     #  函数本体从这里开始执行
     try:
-        timestamp = time.strftime("%y%m%d%H%M%S")  # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
-        safe_original_filename = safe_filename(pOriginalFilename)  # 使用安全的文件名处理函数，但保留原始字符
-        new_filename = f"{timestamp}_{safe_original_filename}"  # 构建新文件名
-        output_path = os.path.join(OUTPUT_FOLDER, new_filename)
+        tTimeStamp = time.strftime("%y%m%d%H%M%S")  # 生成时间戳格式的文件名 (YYMMDDHHMMSS)
+        tSafeFilename = safe_filename(pOriginalFilename)  # 使用安全的文件名处理函数，但保留原始字符
+        tNewFilename = f"{tTimeStamp}_{tSafeFilename}"  # 构建新文件名
+        tOutputPath = os.path.join(OUTPUT_FOLDER, tNewFilename)
 
-        template_path = os.path.join('templates', 'standard.xlsx')  # 读取标准模板
+        tTemplatePath = os.path.join('templates', 'standard.xlsx')  # 读取标准模板
         # 使用openpyxl直接读取模板文件以保留格式
         from openpyxl import load_workbook
-        template_wb = load_workbook(template_path)
+        template_wb = load_workbook(tTemplatePath)
         template_ws = template_wb['Sheet1']
 
         df = pd.DataFrame()  # 创建一个空的DataFrame作为初始工作表
-        with pd.ExcelWriter(output_path, engine='openpyxl') as writer:  # 创建一个新的Excel写入器
+        with pd.ExcelWriter(tOutputPath, engine='openpyxl') as writer:  # 创建一个新的Excel写入器
             df.to_excel(writer, sheet_name='总表', index=False)  # 先写入空的DataFrame以创建工作表
             workbook = writer.book  # 获取工作簿
             write_to_excel_individual()
             write_to_excle_summary()
-        return output_path
+        return tOutputPath
 
     except Exception as e:
         raise Exception(f"写入Excel文件时出错: {str(e)}")
