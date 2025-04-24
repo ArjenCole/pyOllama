@@ -59,7 +59,8 @@ def test_para(para):
     return rtp
 
 
-material_fittings = ["Q235A", "SS304", "SS316", "球铁", "橡胶", "PE100", "PVC-U", "nan"]
+material_fittings = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢",
+                     "SS304", "SS316", "球铁", "橡胶", "PE100", "PVC-U", "nan"]
 material_type = ["管配件", "阀门", "设备", "材料"]
 
 
@@ -105,7 +106,7 @@ def fuzzy_match_EM(pEquipmentMaterial):
     match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
     if match_result is not None:  # 检查是否找到匹配
         best_match, score = match_result
-        if score > rtScore:
+        if score > rtScore and score > 50:
             rtBest_match = best_match
             rtScore = score
             rtType = "阀门"

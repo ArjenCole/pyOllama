@@ -441,7 +441,7 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                     tPrice, tPriceFlange = 1, 1
                     tDensity = ""  # 与铁的容重比
                     tAtlas = Atlas_PipeFittingsQ235A
-                    if tMaterial in ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E"]:
+                    if tMaterial in ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢"]:
                         tPrice, tPriceFlange = 1, 1
                         tDensity = ""
                         tAtlas = Atlas_PipeFittingsQ235A
