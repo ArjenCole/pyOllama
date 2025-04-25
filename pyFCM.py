@@ -61,7 +61,7 @@ def test_para(para):
 
 MATERIAL_FITTINGS = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢",
                      "SS304", "SS316", "球铁", "橡胶", "塑料", "PE100", "PVC-U", "nan"]
-MATERIAL_FITTINGS_STEEL = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢", "SS304", "SS316"]
+MATERIAL_FITTINGS_STEEL = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢", "SS304", "SS316", "不锈钢"]
 material_type = ["管配件", "阀门", "设备", "材料"]
 
 def _fuzzy_match_material(pEquipmentMaterial):
@@ -72,6 +72,8 @@ def _fuzzy_match_material(pEquipmentMaterial):
         tMatch = re.compile(r"de\d+").search(pEquipmentMaterial.specification)
         if tMatch is not None:
             rtMaterial, rtScore = "塑料", 90
+        if "不锈钢" in pEquipmentMaterial.specification + pEquipmentMaterial.name:
+            rtMaterial, rtScore = "不锈钢", 90
     return rtMaterial, rtScore
 
 
