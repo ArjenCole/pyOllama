@@ -144,7 +144,7 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
     _REQUIRED_COLUMNS = ["名称", "规格", "单位", "数量"]
 
     def _match_row(pRow):
-        tTargetCol = {}
+        rtTargetCol = {}
         tTargetSim = {}
         for feKey in _TARGET_WORDS:
             tTargetSim[feKey] = 0.0
@@ -165,10 +165,10 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
             # print("ks", feCellValue, _match_key, _match_sim)
             if tMatchKey is not None:
                 if tMatchSim > max(tTargetSim[tMatchKey], 0.8):
-                    tTargetCol[tMatchKey] = feCol
+                    rtTargetCol[tMatchKey] = feCol
                     tTargetSim[tMatchKey] = tMatchSim
 
-        return tTargetCol
+        return rtTargetCol
 
     try:
 
