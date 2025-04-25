@@ -59,59 +59,60 @@ def test_para(para):
     return rtp
 
 
-material_fittings = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢",
+MATERIAL_FITTINGS = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢",
                      "SS304", "SS316", "球铁", "橡胶", "PE100", "PVC-U", "nan"]
+MATERIAL_STEEL_FITTINGS = ["Q235A", "Q235B", "Q235C", "Q235D", "Q235E", "钢", "SS304", "SS316"]
 material_type = ["管配件", "阀门", "设备", "材料"]
 
 
 def fuzzy_match_EM(pEquipmentMaterial):
-    rtMaterial, score = "", 0.00
+    rtMaterial, tScore = "", 0.00
     if pEquipmentMaterial.material != "":
-        rtMaterial, score = process.extractOne(pEquipmentMaterial.material, material_fittings)  # 先匹配材质
-    rtBest_match = ""
+        rtMaterial, tScore = process.extractOne(pEquipmentMaterial.material, MATERIAL_FITTINGS)  # 先匹配材质
+    rtBestMatch = ""
     rtFlange = 0
     rtScore = 0
     rtType = ""
-    flange_pattern = re.compile(r"(单法|双法|二法|三法|四法)")  # 定义正则表达式匹配法兰数量
-    if rtMaterial in ["Q235A", "SS304", "SS316"]:
-        match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsQ235A.keys())
-        if match_result is not None:  # 检查是否找到匹配
-            best_match, score = match_result
+    tFlangePattern = re.compile(r"(单法|双法|二法|三法|四法)")  # 定义正则表达式匹配法兰数量
+    if rtMaterial in MATERIAL_STEEL_FITTINGS:
+        tMatchResult = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsQ235A.keys())
+        if tMatchResult is not None:  # 检查是否找到匹配
+            tBestMatch, score = tMatchResult
             if score > rtScore:
-                rtBest_match = best_match
-                flange_match = flange_pattern.search(pEquipmentMaterial.name)
-                if flange_match:
-                    flange_text = flange_match.group(1)
+                rtBestMatch = tBestMatch
+                tFlangeMatch = tFlangePattern.search(pEquipmentMaterial.name)
+                if tFlangeMatch:
+                    flange_text = tFlangeMatch.group(1)
                     # 将中文数字转换为阿拉伯数字
                     rtFlange = {"单法": 1, "双法": 2, "二法": 2, "三法": 3, "四法": 4}.get(flange_text, 0)
                 rtScore = score
                 rtType = "管配件"
     elif rtMaterial in ["球铁"]:
-        match_result = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsDuctileIron.keys())
-        if match_result is not None:  # 检查是否找到匹配
-            best_match, score = match_result
+        tMatchResult = process.extractOne(pEquipmentMaterial.name, Atlas_PipeFittingsDuctileIron.keys())
+        if tMatchResult is not None:  # 检查是否找到匹配
+            tBestMatch, score = tMatchResult
             if score > rtScore:
-                rtBest_match = best_match
+                rtBestMatch = tBestMatch
                 rtScore = score
                 rtType = "管配件"
 
-    match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Equipment.keys())
-    if match_result is not None:  # 检查是否找到匹配
-        best_match, score = match_result
+    tMatchResult = process.extractOne(pEquipmentMaterial.name, Atlas_Equipment.keys())
+    if tMatchResult is not None:  # 检查是否找到匹配
+        tBestMatch, score = tMatchResult
         if score > rtScore and score > 70:  # 设备必须匹配度高一些才确认，反正后面有功率识别兜底
-            rtBest_match = best_match
+            rtBestMatch = tBestMatch
             rtScore = score
             rtType = "设备"
 
-    match_result = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
-    if match_result is not None:  # 检查是否找到匹配
-        best_match, score = match_result
+    tMatchResult = process.extractOne(pEquipmentMaterial.name, Atlas_Valve.keys())
+    if tMatchResult is not None:  # 检查是否找到匹配
+        tBestMatch, score = tMatchResult
         if score > rtScore and score > 50:
-            rtBest_match = best_match
+            rtBestMatch = tBestMatch
             rtScore = score
             rtType = "阀门"
 
-    return rtBest_match, rtFlange, rtMaterial, rtScore, rtType
+    return rtBestMatch, rtFlange, rtMaterial, rtScore, rtType
 
 
 def extract_specifications(spec_string):  # 从规格字符串中提取管径和长度参数 参数例 "DN1=1200,DN2=500,DN3=500""DN1400，L=9000"
