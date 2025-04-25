@@ -622,6 +622,7 @@ def init_routes(app, socketio):
             _stage_update(10, f'文件 {file.filename} 保存成功！，数据读取中……', session_id, socketio)  # 发送进度更新
 
             equipment_dict = process_excel_file(file_path, session_id, socketio)  # 处理Excel文件，传入session_id
+            # print("读取完成！")
             _stage_update(70, f'文件 {file.filename} 读取完成，正在生成结果文件……', session_id, socketio)  # 发送进度更新
 
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名，写入新的Excel文件
