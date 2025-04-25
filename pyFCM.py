@@ -120,8 +120,10 @@ def fuzzy_match_EM(pEquipmentMaterial):
             rtBestMatch = tBestMatch
             rtScore = score
             rtType = "阀门"
-
-    return rtBestMatch, rtFlange, rtMaterial, rtScore, rtType
+    rtResult = extract_specifications(pEquipmentMaterial.specification)
+    if rtResult["功率"] > 0:
+        rtType = "设备"
+    return rtBestMatch, rtFlange, rtMaterial, rtScore, rtType, rtResult
 
 
 def extract_specifications(spec_string):  # 从规格字符串中提取管径和长度参数 参数例 "DN1=1200,DN2=500,DN3=500""DN1400，L=9000"

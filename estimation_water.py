@@ -434,8 +434,7 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                 tCurrentRow = 8
 
                 for feEM in pEMDict[feIndivName]:
-                    tBM, tFlange, tMaterial, tScore, tType = fuzzy_match_EM(feEM)
-                    tResult = extract_specifications(feEM.specification)
+                    tBM, tFlange, tMaterial, tScore, tType, tResult = fuzzy_match_EM(feEM)
                     dn1, dn2 = 0, 0
                     tValue = ""
                     tPrice, tPriceFlange = 1, 1
@@ -462,7 +461,7 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                         dn2 = dn1
                         if len(tResult["管径"]) > 1:
                             dn2 = tResult["管径"][1]
-                    if tScore > 0:
+                    if tType == "管配件" and tScore > 0:
                         if tBM in tAtlas.keys():
                             tDic = tAtlas[tBM][find_closest_key(dn1, tAtlas[tBM])]
                             tFlangeDn1 = find_closest_key(dn1, tAtlas["法兰"])
@@ -492,8 +491,6 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                                     tType = "材料"
                             else:
                                 tType = "材料"
-                    if tResult["功率"] > 0:
-                        tType = "设备"
                     if tType == "":
                         tType = "材料"
                     if tType not in category[feSuffix]:
