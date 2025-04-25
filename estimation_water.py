@@ -473,7 +473,10 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
                                        "柔性防水套管B型Ⅱ型", "法兰套管A型Ⅰ型", "法兰套管A型Ⅱ型", "法兰套管B型Ⅰ型",
                                        "法兰套管B型Ⅱ型", "刚性防水套管A型", "刚性防水套管B型", "刚性防水套管C型"]:
                                 if feEM.unit not in UNIT_MAPPING_LEN_MM.keys():
-                                    tLengthStr = "*" + str(tResult["长度"]) + "/1000"
+                                    tStr = tResult["长度"]
+                                    if float(tStr) == 0.0:
+                                        tStr = "300"
+                                    tLengthStr = "*" + str(tStr) + "/1000"
                                 if tBM == "穿墙套管":
                                     tCircle = Atlas_PipeFittingsQ235A["穿墙套管-配件"][
                                         find_closest_key(dn1, Atlas_PipeFittingsQ235A["穿墙套管-配件"])]
