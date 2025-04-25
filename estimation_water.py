@@ -132,12 +132,12 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
         以所属单体为key，设备材料列表为value的字典
     """
     _TARGET_WORDS = {"序号": ["序号", "编号"],
-                     "所属单体": ["单体", "所属单体", "构筑物", "位置", "设备位置", "安装位置", "安装地点"],
+                     "所属单体": ["单体", "所属单体", "构筑物"],
                      "名称": ["名称", "设备名称"],
-                     "规格": ["规格", "规格尺寸", "规格参数", "型号规格"],
+                     "规格": ["规格", "规格尺寸", "规格参数", "型号规格", "技术要求", "参考型号及规格", "管径", "设备型号"],
                      "材料": ["材料", "材质"],
                      "单位": ["单位"],
-                     "数量": ["数量"],
+                     "数量": ["数量", "长度"],
                      "备注": ["备注"]}
     # 假设表头包含这些字段
     # _Required_Columns = ["序号", "所属单体", "名称", "规格", "材料", "单位", "数量", "备注"]
@@ -622,7 +622,7 @@ def init_routes(app, socketio):
             _stage_update(10, f'文件 {file.filename} 保存成功！，数据读取中……', session_id, socketio)  # 发送进度更新
 
             equipment_dict = process_excel_file(file_path, session_id, socketio)  # 处理Excel文件，传入session_id
-            # print("读取完成！")
+            print("读取完成！")
             _stage_update(70, f'文件 {file.filename} 读取完成，正在生成结果文件……', session_id, socketio)  # 发送进度更新
 
             output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名，写入新的Excel文件
