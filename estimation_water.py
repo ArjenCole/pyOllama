@@ -118,7 +118,10 @@ def safe_filename(pFilename: str) -> str:
 def _stage_update(pPercent, pStage, pSessionId=None, pSocketio=None):
     if pSocketio:
         pSocketio.emit('progress', {'progress': pPercent, 'stage': pStage, 'sessionId': pSessionId})
-    time.sleep(0)
+        # 添加一个小的延迟，确保消息能够被发送
+        time.sleep(0.05)
+        # 强制刷新socketio
+        pSocketio.sleep(0)
 
 
 def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[str, List[EquipmentMaterial]]:
@@ -282,7 +285,7 @@ def process_excel_file(pFilePath: str, pSessionId: str, pSocketio=None) -> Dict[
         raise Exception(f"处理Excel文件时出错: {str(e)}")
 
 
-def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilename: str) -> str:
+def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilename: str, pSessionId: str = None, pSocketio = None) -> str:
     # 复制单元格格式
     def _copy_cell_format(pCell, pTemplateCell):
         if pTemplateCell.has_style:
@@ -398,7 +401,14 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
 
         # =============================================设备材料表================================================================
         category = {"gpj": ["管配件", "材料"], "sb": ["设备"]}
+        total_units = len(pEMDict.keys())
+        processed_units = 0
+        
         for feIndivName in pEMDict.keys():
+            processed_units += 1
+            progress = 70 + (processed_units / total_units) * 20  # 70-90% 的进度
+            _stage_update(progress, f'正在生成 {feIndivName} 的数据...', pSessionId, pSocketio)
+            
             for feSuffix in category.keys():
                 # 创建第二个工作表（设备材料表）
                 template_ws2 = template_wb['Sheet2']  # 获取模板的第二个工作表
@@ -576,7 +586,9 @@ def write_to_excel(pEMDict: Dict[str, List[EquipmentMaterial]], pOriginalFilenam
             df.to_excel(writer, sheet_name='总表', index=False)  # 先写入空的DataFrame以创建工作表
             workbook = writer.book  # 获取工作簿
             write_to_excel_individual()
+            _stage_update(90, '正在生成总表...', pSessionId, pSocketio)
             write_to_excle_summary()
+            _stage_update(95, '正在保存文件...', pSessionId, pSocketio)
         return tOutputPath
 
     except Exception as e:
@@ -625,7 +637,7 @@ def init_routes(app, socketio):
             print("读取完成！")
             _stage_update(70, f'文件 {file.filename} 读取完成，正在生成结果文件……', session_id, socketio)  # 发送进度更新
 
-            output_path = write_to_excel(equipment_dict, file.filename)  # 使用原始文件名，写入新的Excel文件
+            output_path = write_to_excel(equipment_dict, file.filename, session_id, socketio)  # 使用原始文件名，写入新的Excel文件
 
             _stage_update(100, f'处理完成，已输出文件: {os.path.basename(output_path)}', session_id, socketio)  # 发送进度更新
 

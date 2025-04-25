@@ -77,9 +77,12 @@ socket.on('progress', function (data) {
     // 只处理属于当前会话的进度更新
     if (data.sessionId === sessionId) {
         const progressBar = document.getElementById('progressBar');
-        progressBar.style.width = data.progress + '%';
-        var inputString = data.stage;
-        // 将换行符替换为HTML的换行标签
-        progressLable.innerHTML = inputString.replace(/\n/g, '<br>')
+        // 使用 requestAnimationFrame 确保平滑更新
+        requestAnimationFrame(() => {
+            progressBar.style.width = data.progress + '%';
+            var inputString = data.stage;
+            // 将换行符替换为HTML的换行标签
+            progressLable.innerHTML = inputString.replace(/\n/g, '<br>');
+        });
     }
 }); 
